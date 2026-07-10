@@ -1,0 +1,49 @@
+# Copy an example entry, remove `example: true`, and replace every TODO value.
+# Blank links and images are intentionally hidden by the templates.
+
+- id: "example-project-one"
+  name: "Example Project One — Replace or Delete"
+  short_description: "Example content — replace or delete before publishing."
+  description: >-
+    This sample demonstrates the project data structure. Replace it with a real
+    project description or delete the entire entry.
+  status: "Planned"
+  start_date: "YYYY-MM"
+  end_date: ""
+  tech_stack:
+    - "Example Technology"
+  github_url: ""
+  demo_url: ""
+  docs_url: ""
+  image: ""
+  image_alt: ""
+  related_posts: []
+  tags:
+    - "example"
+    - "template"
+  featured: true
+  example: true
+
+- id: "example-project-two"
+  name: "Example Project Two — Replace or Delete"
+  short_description: "Example content — replace or delete before publishing."
+  description: >-
+    Use this second sample to preview a different project status and a larger
+    technology list. It is not a real project or claim of work.
+  status: "In Progress"
+  start_date: "YYYY-MM"
+  end_date: "Present"
+  tech_stack:
+    - "Example Framework"
+    - "Example Language"
+  github_url: ""
+  demo_url: ""
+  docs_url: ""
+  image: ""
+  image_alt: ""
+  related_posts: []
+  tags:
+    - "example"
+    - "starter"
+  featured: true
+  example: true

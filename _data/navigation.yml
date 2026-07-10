@@ -1,33 +1,71 @@
-# The following is the order of the links in the header of the website.
-#
-# Changing the order here will adjust the order and you can also add additional
-# links. Removing a link prevents it from showing in the header, but does not
-# prevent it from being included in the site.
-#
-# NOTE that only one of the CV options should be selected, the first is for the
-#      Markdown formatted page while the second is generated using JSON.
+# This is the single navigation switchboard.
+# Change only `enabled: false` to `enabled: true` (or the reverse) to show or
+# hide a page. Hidden pages remain published and available by direct URL.
 
 main:
-  - title: "Publications"
-    url: /publications/
-
-  - title: "Talks"
-    url: /talks/    
-
-  - title: "Teaching"
-    url: /teaching/    
-    
-  - title: "Portfolio"
-    url: /portfolio/
-        
-  - title: "Blog Posts"
-    url: /year-archive/
-    
-  - title: "CV"
+  - key: home
+    title: "Home"
+    url: /
+    enabled: true
+  - key: about
+    title: "About"
+    url: /about/
+    enabled: true
+  - key: cv
+    title: "CV"
     url: /cv/
-    
-  # - title: "CV"
-  #   url: /cv-json/
-    
-  - title: "Guide"
-    url: /markdown/
+    enabled: true
+  - key: publications
+    title: "Publications"
+    url: /publications/
+    enabled: true
+  - key: projects
+    title: "Projects"
+    url: /projects/
+    enabled: true
+  - key: blog
+    title: "Blog"
+    url: /blog/
+    enabled: true
+  - key: notes
+    title: "Notes"
+    url: /notes/
+    enabled: false
+  - key: talks
+    title: "Talks"
+    url: /talks/
+    enabled: false
+  - key: teaching
+    title: "Teaching"
+    url: /teaching/
+    enabled: false
+  - key: experience
+    title: "Experience"
+    url: /experience/
+    enabled: false
+  - key: education
+    title: "Education"
+    url: /education/
+    enabled: false
+  - key: awards
+    title: "Awards"
+    url: /awards/
+    enabled: false
+  - key: service
+    title: "Service"
+    url: /service/
+    enabled: false
+  - key: contact
+    title: "Contact"
+    url: /contact/
+    enabled: false
+
+blog_secondary:
+  - title: "Archive"
+    url: /blog/archive/
+  - title: "Tags"
+    url: /blog/tags/
+  - title: "Categories"
+    url: /blog/categories/
+  - title: "RSS"
+    url: /feed.xml

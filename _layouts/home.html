@@ -1,0 +1,108 @@
+---
+layout: default
+---
+{% assign profile = site.profile %}
+
+<main id="main" class="home-shell" tabindex="-1">
+  <section class="home-hero reveal" aria-labelledby="home-title">
+    <div class="home-hero__copy">
+      <p class="home-hero__eyebrow">Personal website · Writing · Work</p>
+      <h1 id="home-title">{{ profile.display_name | escape }}</h1>
+      <p class="home-hero__intro">{{ profile.short_bio | escape }}</p>
+      <p class="home-hero__status">{{ profile.current_status | escape }}{% if profile.location and profile.location != "" %} · {{ profile.location | escape }}{% endif %}</p>
+
+      <div class="home-hero__actions">
+        <a class="button-primary" href="{{ profile.cv_pdf | relative_url }}">Download CV</a>
+        <a class="button-secondary" href="{{ '/about/' | relative_url }}">About me</a>
+        {% if profile.email and profile.email != "" %}<a class="button-quiet" href="mailto:{{ profile.email }}">Email</a>{% endif %}
+      </div>
+
+      <nav class="link-row" aria-label="Profile links">
+        {% if profile.social.github_url and profile.social.github_url != "" %}<a class="button-quiet" href="{{ profile.social.github_url }}" rel="me">GitHub</a>{% endif %}
+        {% if profile.social.linkedin_url and profile.social.linkedin_url != "" %}<a class="button-quiet" href="{{ profile.social.linkedin_url }}" rel="me">LinkedIn</a>{% endif %}
+        {% if profile.social.google_scholar_url and profile.social.google_scholar_url != "" %}<a class="button-quiet" href="{{ profile.social.google_scholar_url }}" rel="me">Google Scholar</a>{% endif %}
+        {% if profile.social.orcid and profile.social.orcid != "" %}<a class="button-quiet" href="{{ profile.social.orcid }}" rel="me">ORCID</a>{% endif %}
+        {% if profile.social.x_url and profile.social.x_url != "" %}<a class="button-quiet" href="{{ profile.social.x_url }}" rel="me">X / Twitter</a>{% endif %}
+      </nav>
+    </div>
+
+    <div class="home-hero__photo">
+      {% if profile.profile_photo and profile.profile_photo != "" %}
+        <img src="{{ profile.profile_photo | relative_url }}" alt="Portrait of {{ profile.display_name | escape }}" fetchpriority="high">
+      {% else %}
+        <div class="profile-photo-placeholder" role="img" aria-label="Profile photo placeholder"><span aria-hidden="true">PHOTO</span></div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="home-section reveal" aria-labelledby="about-heading">
+    <div class="section-heading">
+      <div>
+        <p class="section-kicker">About</p>
+        <h2 id="about-heading">A short introduction</h2>
+      </div>
+      <a class="button-quiet" href="{{ '/about/' | relative_url }}">Read more →</a>
+    </div>
+    <p class="prose-lead">{{ profile.long_bio | escape }}</p>
+  </section>
+
+  <section class="home-section" aria-labelledby="projects-heading">
+    <div class="section-heading reveal">
+      <div>
+        <p class="section-kicker">Selected work</p>
+        <h2 id="projects-heading">Featured projects</h2>
+      </div>
+      <a class="button-quiet" href="{{ '/projects/' | relative_url }}">All projects →</a>
+    </div>
+    {% assign featured_count = 0 %}
+    <div class="card-grid">
+      {% for project in site.data.projects %}
+        {% if project.featured == true and featured_count < 2 %}
+          {% include project-card.html project=project heading_level=3 compact=true %}
+          {% assign featured_count = featured_count | plus: 1 %}
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% if featured_count == 0 %}<p class="empty-state">Content will be added later.</p>{% endif %}
+  </section>
+
+  <section class="home-section" aria-labelledby="blog-heading">
+    <div class="section-heading reveal">
+      <div>
+        <p class="section-kicker">Writing</p>
+        <h2 id="blog-heading">Latest blog posts</h2>
+      </div>
+      <a class="button-quiet" href="{{ '/blog/' | relative_url }}">Visit the blog →</a>
+    </div>
+    {% if site.posts.size > 0 %}
+      <div class="post-list">
+        {% for post in site.posts limit: 3 %}{% include post-card.html post=post heading_level=3 %}{% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">Content will be added later.</p>
+    {% endif %}
+  </section>
+
+  {% assign selected_publication_count = 0 %}
+  {% for publication in site.data.publications %}
+    {% if publication.selected == true and publication.example != true %}{% assign selected_publication_count = selected_publication_count | plus: 1 %}{% endif %}
+  {% endfor %}
+  {% if selected_publication_count > 0 %}
+    <section class="home-section" aria-labelledby="publications-heading">
+      <div class="section-heading reveal">
+        <div>
+          <p class="section-kicker">Publications</p>
+          <h2 id="publications-heading">Selected publications</h2>
+        </div>
+        <a class="button-quiet" href="{{ '/publications/' | relative_url }}">All publications →</a>
+      </div>
+      <div class="publication-list">
+        {% for publication in site.data.publications %}
+          {% if publication.selected == true and publication.example != true %}{% include publication-card.html publication=publication heading_level=3 compact=true %}{% endif %}
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {{ content }}
+</main>

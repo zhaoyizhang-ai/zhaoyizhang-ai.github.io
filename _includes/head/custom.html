@@ -1,22 +1,43 @@
 {% include base_path %}
 
-<!-- start custom head snippets -->
+<!-- Local icon fonts; the site does not depend on a third-party font CDN. -->
+<link rel="stylesheet" href="{{ '/assets/css/academicons.min.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/fontawesome.css' | relative_url }}">
 
-<!-- Support for Academicons -->
-<link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"></noscript>
+<!-- Replace the placeholder icons in assets/images/icons before publishing. -->
+<link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/images/icons/apple-touch-icon.png' | relative_url }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/images/icons/favicon-32x32.png' | relative_url }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ '/assets/images/icons/favicon-192x192.png' | relative_url }}">
+<link rel="manifest" href="{{ '/assets/images/icons/site.webmanifest' | relative_url }}">
+<meta name="theme-color" content="#f8fafc">
 
-<!-- Support for Font Awesome -->
- <link rel="preload" href="{{ base_path }}/assets/css/fontawesome.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="{{ base_path }}/assets/css/fontawesome.css"></noscript>
+{% if page.math %}
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+{% endif %}
 
-<!-- favicon from https://commons.wikimedia.org/wiki/File:OOjs_UI_icon_academic-progressive.svg -->
-<link rel="apple-touch-icon" sizes="180x180" href="{{ base_path }}/images/apple-touch-icon-180x180.png"/>
-<link rel="icon" type="image/svg+xml" href="{{ base_path }}/images/favicon.svg"/>
-<link rel="icon" type="image/png" href="{{ base_path }}/images/favicon-32x32.png" sizes="32x32"/>
-<link rel="icon" type="image/png" href="{{ base_path }}/images/favicon-192x192.png" sizes="192x192"/>
-<link rel="manifest" href="{{ base_path }}/images/manifest.json"/>
-<link rel="icon" href="/images/favicon.ico"/>
-<meta name="theme-color" content="var(--global-bg-color)"/>
+{% assign ga = site.features.google_analytics %}
+{% if ga.enabled == true and ga.measurement_id != "" %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga.measurement_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ ga.measurement_id }}');
+  </script>
+{% endif %}
 
-<!-- end custom head snippets -->
+{% assign plausible = site.features.plausible %}
+{% if plausible.enabled == true and plausible.domain != "" %}
+  <script defer data-domain="{{ plausible.domain }}" src="{{ plausible.script_url }}"></script>
+{% endif %}
+
+{% assign search_console = site.features.google_search_console %}
+{% if search_console.enabled == true and search_console.verification_code != "" %}
+  <meta name="google-site-verification" content="{{ search_console.verification_code }}">
+{% endif %}

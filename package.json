@@ -1,40 +1,26 @@
 {
-  "name": "academic-pages",
-  "version": "0.8.1.1",
-  "description": "Academic Pages Mistakes Jekyll theme npm build scripts",
+  "name": "zhaoyizhang-ai-github-io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal website and blog built with Academic Pages and Jekyll",
   "repository": {
     "type": "git",
-    "url": "https://github.com/academicpages/academicpages.github.io"
+    "url": "https://github.com/zhaoyizhang-ai/zhaoyizhang-ai.github.io.git"
   },
-  "keywords": [
-    "jekyll",
-    "theme",
-    "minimal"
-  ],
-  "contributors": [
-    "Michael Rose",
-    "Robert Zupko"
-  ],
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/academicpages/academicpages.github.io/issues"
-  },
-  "homepage": "https://github.com/academicpages/academicpages.github.io",
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">=22 <26"
   },
   "dependencies": {
-    "jquery": "^3.7.1",
-    "plotly.js-dist-min": "^3.6.0"
+    "jquery": "3.7.1"
   },
   "devDependencies": {
-    "jslint": "^0.12.1",
-    "onchange": "^7.1.0",
-    "uglify-js": "^3.19.3"    
+    "markdownlint-cli2": "0.23.0",
+    "uglify-js": "3.19.3"
   },
   "scripts": {
-    "uglify": "uglifyjs node_modules/jquery/dist/jquery.min.js assets/js/plugins/jquery.greedy-navigation.js assets/js/_main.js assets/js/theme.js -c -m -o assets/js/main.min.js",
-    "watch:js": "onchange \"assets/js/**/*.js\" -e \"assets/js/main.min.js\" -- npm run build:js",
-    "build:js": "npm run uglify"
+    "build:js": "uglifyjs node_modules/jquery/dist/jquery.min.js assets/js/plugins/jquery.greedy-navigation.js assets/js/_main.js assets/js/theme.js -c -m -o assets/js/main.min.js",
+    "lint:md": "markdownlint-cli2 README.md CUSTOMIZE_ME.md '_posts/**/*.md' '_notes/**/*.md' '_pages/**/*.md' '_drafts/**/*.md' 'assets/images/**/README.md' 'files/**/README.md'",
+    "test": "npm run lint:md"
   }
 }

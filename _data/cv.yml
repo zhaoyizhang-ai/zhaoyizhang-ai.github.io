@@ -1,0 +1,72 @@
+# Web CV data. Keep arrays empty until you have real information to publish.
+# The CV page will show a neutral empty-state instead of inventing content.
+
+summary: "Content will be added later."
+
+education: []
+# - institution: "TODO"
+#   degree: "TODO"
+#   field: "TODO"
+#   location: "TODO"
+#   start: "YYYY"
+#   end: "YYYY or Present"
+#   details: []
+
+experience: []
+# - organization: "TODO"
+#   role: "TODO"
+#   location: "TODO"
+#   start: "YYYY-MM"
+#   end: "YYYY-MM or Present"
+#   details: []
+
+projects: []
+# - name: "TODO"
+#   role: "TODO"
+#   period: "TODO"
+#   url: ""
+#   details: []
+
+publications: []
+# - title: "TODO"
+#   authors: "TODO"
+#   venue: "TODO"
+#   year: "YYYY"
+#   url: ""
+
+skills: []
+# - category: "TODO"
+#   items: ["TODO"]
+
+awards: []
+# - title: "TODO"
+#   issuer: "TODO"
+#   year: "YYYY"
+#   description: ""
+
+certifications: []
+# - name: "TODO"
+#   issuer: "TODO"
+#   year: "YYYY"
+#   credential_url: ""
+
+teaching: []
+# - course: "TODO"
+#   role: "TODO"
+#   institution: "TODO"
+#   term: "TODO"
+
+talks: []
+# - title: "TODO"
+#   event: "TODO"
+#   date: "YYYY-MM-DD"
+#   url: ""
+
+service: []
+# - role: "TODO"
+#   organization: "TODO"
+#   period: "TODO"
+
+languages: []
+# - language: "TODO"
+#   proficiency: "TODO"

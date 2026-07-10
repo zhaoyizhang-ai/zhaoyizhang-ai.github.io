@@ -1,23 +1,28 @@
-# Ignore the contents of the _site directory and other cache directories
+# Generated site and Jekyll caches
 _site/
+.jekyll-cache/
+.jekyll-metadata
 .sass-cache/
 
-# Ignore the directory for local files during development
-local/
-
-# Ignore the Gemfile that is generated
-Gemfile.lock
-
-# Ignore files created by npm
-node_modules
-package-lock.json
-
-# Ignore the vendor file at root level and bundle for alternative installation
+# Local dependency caches (lockfiles are intentionally committed)
 /vendor/
 .bundle/
+node_modules/
 
-# Ignore folders related to IDEs
+# Local tooling and test output
+tmp/
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# Editors and operating systems
 .vscode/
-
-# Ignore files created by MacOS
+.idea/
 .DS_Store
+
+# Local secrets and overrides
+.env
+.env.*
+!.env.example
+_config.local.yml

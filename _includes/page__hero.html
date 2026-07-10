@@ -1,7 +1,10 @@
 {% include base_path %}
 
+{% assign image_first_char = page.header.image | slice: 0, 1 %}
 {% if page.header.image contains "://" %}
   {% capture img_path %}{{ page.header.image }}{% endcapture %}
+{% elsif image_first_char == "/" %}
+  {% capture img_path %}{{ page.header.image | relative_url }}{% endcapture %}
 {% else %}
   {% capture img_path %}{{ page.header.image | prepend: "/images/" | prepend: base_path }}{% endcapture %}
 {% endif %}
@@ -15,7 +18,12 @@
 {% if page.header.overlay_image contains "://" %}
   {% capture overlay_img_path %}{{ page.header.overlay_image }}{% endcapture %}
 {% elsif page.header.overlay_image %}
-  {% capture overlay_img_path %}{{ page.header.overlay_image | prepend: "/images/" | prepend: base_path }}{% endcapture %}
+  {% assign overlay_first_char = page.header.overlay_image | slice: 0, 1 %}
+  {% if overlay_first_char == "/" %}
+    {% capture overlay_img_path %}{{ page.header.overlay_image | relative_url }}{% endcapture %}
+  {% else %}
+    {% capture overlay_img_path %}{{ page.header.overlay_image | prepend: "/images/" | prepend: base_path }}{% endcapture %}
+  {% endif %}
 {% endif %}
 
 {% if page.header.overlay_filter contains "rgba" %}
@@ -47,7 +55,7 @@
       {% endif %}
     </div>
   {% else %}
-    <img src="{{ img_path }}" alt="{{ page.title }}" class="page__hero-image">
+    <img src="{{ img_path }}" alt="{{ page.header.image_alt | default: page.title | escape }}" class="page__hero-image">
   {% endif %}
   {% if page.header.caption %}
     <span class="page__hero-caption">{{ page.header.caption | markdownify | remove: "<p>" | remove: "</p>" }}</span>

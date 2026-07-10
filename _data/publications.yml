@@ -1,0 +1,37 @@
+# Publications are stored as structured YAML so GitHub Pages can build them
+# without unsupported plugins. Authors with `self: true` are bolded.
+
+- id: "example-publication-delete-me"
+  title: "Example Publication — Replace or Delete"
+  authors:
+    - name: "Example Collaborator"
+      order: 1
+      self: false
+    - name: "<DISPLAY_NAME>"
+      order: 2
+      self: true
+  year: 2026
+  venue: "Example Venue (not a real publication)"
+  abstract: >-
+    Example content — replace or delete before publishing. This entry exists
+    only to demonstrate the publication layout and metadata fields.
+  doi: ""
+  arxiv: ""
+  pdf_url: ""
+  code_url: ""
+  project_url: ""
+  citation: >-
+    Example Collaborator and <DISPLAY_NAME>. “Example Publication — Replace or
+    Delete.” Example Venue, 2026. Example only; not a real publication.
+  bibtex: |
+    @misc{example_publication_delete_me,
+      title  = {Example Publication -- Replace or Delete},
+      author = {Example Collaborator and <DISPLAY_NAME>},
+      year   = {2026},
+      note   = {Example content only; not a real publication}
+    }
+  cover: ""
+  cover_alt: ""
+  type: "Example"
+  selected: true
+  example: true

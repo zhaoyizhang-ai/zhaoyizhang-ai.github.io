@@ -5,14 +5,25 @@ layout: compress
 {% include base_path %}
 
 <!doctype html>
-<html lang="{{ site.locale | slice: 0,2 }}" class="no-js"{% if site.site_theme == "dark" %} data-theme="dark"{% endif %}>
+<html lang="{{ site.locale | slice: 0,2 }}" class="no-js" data-theme="system">
   <head>
+    <script>
+      (function () {
+        var saved = localStorage.getItem('theme');
+        var setting = ['light', 'dark', 'system'].indexOf(saved) > -1 ? saved : 'system';
+        var resolved = setting === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : setting;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.dataset.themeSetting = setting;
+      }());
+    </script>
     {% include head.html %}
     {% include head/custom.html %}
   </head>
 
   <body>
-
+    <a class="skip-link" href="#main">Skip to main content</a>
     {% include browser-upgrade.html %}
     {% include masthead.html %}
 

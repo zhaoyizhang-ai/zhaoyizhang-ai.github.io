@@ -1,0 +1,14 @@
+{% assign post = include.post %}
+<article class="post-card reveal">
+  <time class="post-card__date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%b %d, %Y" }}</time>
+  <div>
+    {% if post.example == true %}<span class="example-badge">Example content</span>{% endif %}
+    <h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}><a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a></h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>
+    {% if post.excerpt %}<div class="card-description">{{ post.excerpt | markdownify | strip_html | truncatewords: 32 }}</div>{% endif %}
+    {% if post.tags and post.tags.size > 0 %}
+      <ul class="tag-list" aria-label="Post tags">
+        {% for tag in post.tags %}<li class="tag-chip">{{ tag | escape }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</article>
