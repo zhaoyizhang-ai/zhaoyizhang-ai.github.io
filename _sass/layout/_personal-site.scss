@@ -302,10 +302,7 @@ summary:focus-visible {
 }
 
 .home-hero {
-  --pointer-x: 68%;
-  --pointer-y: 40%;
   position: relative;
-  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 220px;
   gap: clamp(2.5rem, 7vw, 6rem);
@@ -316,18 +313,7 @@ summary:focus-visible {
 }
 
 .home-hero::before {
-  position: absolute;
-  z-index: -1;
-  inset: -2rem 0;
-  content: "";
-  pointer-events: none;
-  background:
-    radial-gradient(circle at var(--pointer-x) var(--pointer-y),
-      color-mix(in srgb, var(--accent-color) 13%, transparent) 0,
-      color-mix(in srgb, var(--accent-color) 4%, transparent) 23%,
-      transparent 48%);
-  opacity: 0.78;
-  transition: opacity 300ms ease;
+  display: none;
 }
 
 .home-hero__copy { min-width: 0; }
@@ -420,6 +406,7 @@ html[data-theme="dark"] .button-primary { color: #10171d; }
 
 .home-hero__photo {
   position: relative;
+  isolation: isolate;
   justify-self: end;
 }
 
@@ -427,22 +414,27 @@ html[data-theme="dark"] .button-primary { color: #10171d; }
 .home-hero__photo::after {
   position: absolute;
   z-index: -1;
-  inset: -15px;
   content: "";
-  border: 1px solid color-mix(in srgb, var(--accent-color) 32%, transparent);
-  border-radius: 20px;
   pointer-events: none;
 }
 
 .home-hero__photo::before {
-  animation: portrait-orbit 16s linear infinite;
-  border-top-color: transparent;
-  border-left-color: transparent;
+  inset: -28%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%,
+      color-mix(in srgb, var(--accent-color) 28%, transparent),
+      transparent 54%),
+    radial-gradient(circle at 68% 70%,
+      color-mix(in srgb, #6ea8a4 20%, transparent),
+      transparent 58%);
+  filter: blur(25px);
+  opacity: 0.42;
+  animation: portrait-breathe 7s ease-in-out infinite alternate;
 }
 
 .home-hero__photo::after {
-  inset: -7px;
-  border-color: color-mix(in srgb, var(--accent-color) 14%, transparent);
+  display: none;
 }
 
 .home-hero__photo .profile-photo-placeholder,
@@ -807,16 +799,10 @@ html[data-theme="dark"] .example-badge {
   to { opacity: 1; transform: none; }
 }
 
-@keyframes portrait-orbit {
-  to { transform: rotate(360deg); }
+@keyframes portrait-breathe {
+  from { opacity: 0.3; transform: scale(0.92) translate3d(-2%, 1%, 0); }
+  to { opacity: 0.52; transform: scale(1.08) translate3d(2%, -1%, 0); }
 }
-
-@view-transition { navigation: auto; }
-
-::view-transition-old(root) { animation: 160ms ease both fade-out; }
-::view-transition-new(root) { animation: 300ms ease both editorial-enter; }
-
-@keyframes fade-out { to { opacity: 0; } }
 
 @media (max-width: 925px) {
   .profile-card { max-width: none; }

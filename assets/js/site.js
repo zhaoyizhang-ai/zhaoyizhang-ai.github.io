@@ -219,15 +219,6 @@
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     document.documentElement.classList.add('motion-ready');
 
-    var hero = document.querySelector('.home-hero');
-    if (hero && window.matchMedia('(pointer: fine)').matches) {
-      hero.addEventListener('pointermove', function (event) {
-        var bounds = hero.getBoundingClientRect();
-        hero.style.setProperty('--pointer-x', ((event.clientX - bounds.left) / bounds.width * 100).toFixed(1) + '%');
-        hero.style.setProperty('--pointer-y', ((event.clientY - bounds.top) / bounds.height * 100).toFixed(1) + '%');
-      });
-    }
-
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     document.querySelectorAll('.project-card, .publication-card, .post-card, .note-card').forEach(function (card) {
       card.classList.add('tilt-card');
