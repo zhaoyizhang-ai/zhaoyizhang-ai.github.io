@@ -1,6 +1,7 @@
 ---
 permalink: /teaching/
 title: "Teaching"
+title_zh: "教学"
 description: "Teaching and mentoring activities."
 ---
 
@@ -12,4 +13,4 @@ description: "Teaching and mentoring activities."
       <p class="cv-item__details">{{ item.role | escape }}{% if item.institution %} · {{ item.institution | escape }}{% endif %}</p>
     </article>
   {% endfor %}
-{% else %}<p class="empty-state">Content will be added later.</p>{% endif %}
+{% else %}<p class="empty-state" data-i18n="content_later">Content will be added later.</p>{% endif %}

@@ -1,6 +1,7 @@
 ---
 permalink: /experience/
 title: "Experience"
+title_zh: "经历"
 description: "Professional and organizational experience."
 ---
 
@@ -13,4 +14,4 @@ description: "Professional and organizational experience."
       {% if item.details.size > 0 %}<ul class="cv-item__details">{% for detail in item.details %}<li>{{ detail | escape }}</li>{% endfor %}</ul>{% endif %}
     </article>
   {% endfor %}
-{% else %}<p class="empty-state">Content will be added later.</p>{% endif %}
+{% else %}<p class="empty-state" data-i18n="content_later">Content will be added later.</p>{% endif %}

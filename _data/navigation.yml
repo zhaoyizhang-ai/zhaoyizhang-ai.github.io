@@ -5,67 +5,85 @@
 main:
   - key: home
     title: "Home"
+    title_zh: "主页"
     url: /
     enabled: true
   - key: about
     title: "About"
+    title_zh: "关于"
     url: /about/
     enabled: true
   - key: cv
     title: "CV"
+    title_zh: "简历"
     url: /cv/
     enabled: true
   - key: publications
     title: "Publications"
+    title_zh: "出版物"
     url: /publications/
     enabled: true
   - key: projects
     title: "Projects"
+    title_zh: "项目"
     url: /projects/
     enabled: true
   - key: blog
     title: "Blog"
+    title_zh: "博客"
     url: /blog/
     enabled: true
   - key: notes
     title: "Notes"
+    title_zh: "笔记"
     url: /notes/
     enabled: false
   - key: talks
     title: "Talks"
+    title_zh: "演讲"
     url: /talks/
     enabled: false
   - key: teaching
     title: "Teaching"
+    title_zh: "教学"
     url: /teaching/
     enabled: false
   - key: experience
     title: "Experience"
+    title_zh: "经历"
     url: /experience/
     enabled: false
   - key: education
     title: "Education"
+    title_zh: "教育"
     url: /education/
     enabled: false
   - key: awards
     title: "Awards"
+    title_zh: "奖项"
     url: /awards/
     enabled: false
   - key: service
     title: "Service"
+    title_zh: "服务"
     url: /service/
     enabled: false
   - key: contact
     title: "Contact"
+    title_zh: "联系"
     url: /contact/
     enabled: false
 
 blog_secondary:
   - title: "Archive"
+    title_zh: "归档"
     url: /blog/archive/
   - title: "Tags"
+    title_zh: "标签"
     url: /blog/tags/
   - title: "Categories"
+    title_zh: "分类"
     url: /blog/categories/
   - title: "RSS"
+    title_zh: "RSS"
     url: /feed.xml

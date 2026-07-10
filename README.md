@@ -2,6 +2,8 @@
 
 这是 `zhaoyizhang-ai.github.io` 的源码仓库。网站基于 [Academic Pages](https://github.com/academicpages/academicpages.github.io)（基线提交 `482bc2b`）与 Jekyll，面向长期维护：个人资料集中配置，CV、项目和出版物使用结构化 YAML，Blog 与 Notes 使用 Markdown。
 
+网站支持英文/中文切换。首次访问会根据浏览器或系统语言自动选择；手动切换后会在当前设备记住偏好。界面翻译集中在 `_data/i18n.yml`，个人双语内容使用 `_zh` 后缀字段。
+
 正式地址：<https://zhaoyizhang-ai.github.io>
 
 > 当前姓名、简介、头像、经历等未知信息均为 `TODO` 或占位符。开始填写前先阅读 [CUSTOMIZE_ME.md](CUSTOMIZE_ME.md)。
@@ -72,6 +74,16 @@ bundle exec htmlproofer ./_site --disable-external
 只编辑 `_config.yml` 顶部的 `profile` 区块。姓名、显示名称、邮箱、城市、简介、头像、当前状态和社交链接均在此处维护；下方的 Jekyll 兼容字段通过 YAML anchors 自动复用，不需要重复修改。
 
 空的 Email、LinkedIn、Google Scholar、ORCID 和 X/Twitter 字段不会生成图标或空链接。
+
+中文内容与英文内容在同一份配置中维护：
+
+- `_config.yml`：`short_bio_zh`、`long_bio_zh`、`current_status_zh`。
+- `_data/projects.yml`：`name_zh`、`short_description_zh`、`description_zh`。
+- `_data/publications.yml`：`title_zh`、`venue_zh`、`abstract_zh`。
+- 页面或文章 front matter：`title_zh`、`excerpt_zh` 或 `summary_zh`。
+- `_data/i18n.yml`：导航、按钮、筛选器和通用状态文字。
+
+缺少中文字段时自动回退到英文，不会显示空白。
 
 ## 替换头像
 

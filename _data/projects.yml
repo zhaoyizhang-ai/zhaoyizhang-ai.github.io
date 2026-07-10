@@ -3,10 +3,14 @@
 
 - id: "example-project-one"
   name: "Example Project One — Replace or Delete"
+  name_zh: "示例项目一——请替换或删除"
   short_description: "Example content — replace or delete before publishing."
+  short_description_zh: "示例内容——发布前请替换或删除。"
   description: >-
     This sample demonstrates the project data structure. Replace it with a real
     project description or delete the entire entry.
+  description_zh: >-
+    此示例用于展示项目数据结构。请替换为真实项目介绍，或删除整个条目。
   status: "Planned"
   start_date: "YYYY-MM"
   end_date: ""
@@ -26,10 +30,14 @@
 
 - id: "example-project-two"
   name: "Example Project Two — Replace or Delete"
+  name_zh: "示例项目二——请替换或删除"
   short_description: "Example content — replace or delete before publishing."
+  short_description_zh: "示例内容——发布前请替换或删除。"
   description: >-
     Use this second sample to preview a different project status and a larger
     technology list. It is not a real project or claim of work.
+  description_zh: >-
+    此示例用于预览不同项目状态和更长的技术列表，不代表任何真实项目或成果。
   status: "In Progress"
   start_date: "YYYY-MM"
   end_date: "Present"

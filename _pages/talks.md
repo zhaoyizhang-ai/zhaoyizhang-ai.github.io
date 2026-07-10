@@ -1,6 +1,7 @@
 ---
 permalink: /talks/
 title: "Talks"
+title_zh: "演讲"
 description: "Talks, presentations, and invited sessions."
 ---
 
@@ -9,7 +10,7 @@ description: "Talks, presentations, and invited sessions."
   {% for item in items %}
     <article class="cv-item">
       <h2>{{ item.title | escape }}</h2><span class="cv-item__date">{{ item.date | escape }}</span>
-      <p class="cv-item__details">{{ item.event | escape }}{% if item.url and item.url != "" %} · <a href="{{ item.url }}">Details</a>{% endif %}</p>
+      <p class="cv-item__details">{{ item.event | escape }}{% if item.url and item.url != "" %} · <a href="{{ item.url }}" data-i18n="details">Details</a>{% endif %}</p>
     </article>
   {% endfor %}
-{% else %}<p class="empty-state">Content will be added later.</p>{% endif %}
+{% else %}<p class="empty-state" data-i18n="content_later">Content will be added later.</p>{% endif %}

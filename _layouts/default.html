@@ -5,10 +5,18 @@ layout: compress
 {% include base_path %}
 
 <!doctype html>
-<html lang="{{ site.locale | slice: 0,2 }}" class="no-js" data-theme="system">
+<html lang="en" class="no-js" data-theme="system" data-language="en">
   <head>
     <script>
       (function () {
+        var savedLanguage = localStorage.getItem('site-language');
+        var browserLanguage = (navigator.languages && navigator.languages[0]) || navigator.language || 'en';
+        var language = ['en', 'zh'].indexOf(savedLanguage) > -1
+          ? savedLanguage
+          : (/^zh(?:-|$)/i.test(browserLanguage) ? 'zh' : 'en');
+        document.documentElement.dataset.language = language;
+        document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+
         var saved = localStorage.getItem('theme');
         var setting = ['light', 'dark', 'system'].indexOf(saved) > -1 ? saved : 'system';
         var resolved = setting === 'system'
@@ -23,7 +31,8 @@ layout: compress
   </head>
 
   <body>
-    <a class="skip-link" href="#main">Skip to main content</a>
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <a class="skip-link" href="#main" data-i18n="skip_to_content">Skip to main content</a>
     {% include browser-upgrade.html %}
     {% include masthead.html %}
 
@@ -37,6 +46,8 @@ layout: compress
     </div>
 
     {% include scripts.html %}
+
+    <script type="application/json" id="site-translations">{{ site.data.i18n | jsonify }}</script>
 
   </body>
 </html>

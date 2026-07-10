@@ -9,6 +9,7 @@
 - `<SHORT_BIO>`：一句话简介；替换 `_config.yml → profile.short_bio` 的 TODO。
 - `<LONG_BIO>`：较完整个人简介；位置 `_config.yml → profile.long_bio`。
 - 当前身份或状态：替换 `_config.yml → profile.current_status`。
+- 同时填写 `short_bio_zh`、`long_bio_zh` 和 `current_status_zh`；系统语言为中文时会自动使用这些字段。
 - `<PROFILE_PHOTO>`：把真实头像放入 `assets/images/profile/`，设置 `profile.profile_photo`；也可以暂时保留明显的 PHOTO 占位块。
 - CV：用真实文件覆盖 `files/cv.pdf`，并填写 `_data/cv.yml`。
 - 删除或替换所有带 `Example content — replace or delete before publishing.`、`example: true`、`Replace or Delete` 的访客内容。

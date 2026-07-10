@@ -1,21 +1,21 @@
 {% assign project = include.project %}
 <article class="project-card reveal" data-status="{{ project.status | escape }}" data-project-id="{{ project.id | escape }}">
-  {% if project.example == true %}<span class="example-badge">Example content</span>{% endif %}
+  {% if project.example == true %}<span class="example-badge" data-i18n="example_content">Example content</span>{% endif %}
   {% if project.image and project.image != "" %}
     <img src="{{ project.image | relative_url }}" alt="{{ project.image_alt | escape }}" loading="lazy">
   {% endif %}
   <div class="project-card__header">
     <div>
-      <h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>{{ project.name | escape }}</h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>
+      <h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}><span data-lang-content="en">{{ project.name | escape }}</span><span data-lang-content="zh">{{ project.name_zh | default: project.name | escape }}</span></h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>
       <p class="card-meta">{{ project.start_date | escape }}{% if project.end_date and project.end_date != "" %} – {{ project.end_date | escape }}{% endif %}</p>
     </div>
-    <span class="status-badge">{{ project.status | escape }}</span>
+    <span class="status-badge" data-i18n="{{ project.status | downcase | replace: ' ', '_' }}">{{ project.status | escape }}</span>
   </div>
-  <p class="card-description">{{ project.short_description | escape }}</p>
-  {% if include.compact != true %}<p>{{ project.description | escape }}</p>{% endif %}
+  <p class="card-description"><span data-lang-content="en">{{ project.short_description | escape }}</span><span data-lang-content="zh">{{ project.short_description_zh | default: project.short_description | escape }}</span></p>
+  {% if include.compact != true %}<p><span data-lang-content="en">{{ project.description | escape }}</span><span data-lang-content="zh">{{ project.description_zh | default: project.description | escape }}</span></p>{% endif %}
 
   {% if project.tech_stack and project.tech_stack.size > 0 %}
-    <p class="card-meta"><strong>Stack:</strong> {{ project.tech_stack | join: ", " | escape }}</p>
+    <p class="card-meta"><strong data-i18n="stack">Stack:</strong> {{ project.tech_stack | join: ", " | escape }}</p>
   {% endif %}
 
   {% if project.tags and project.tags.size > 0 %}
@@ -28,13 +28,13 @@
     <div class="card-links">
       {% if project.github_url and project.github_url != "" %}<a class="button-quiet" href="{{ project.github_url }}">GitHub</a>{% endif %}
       {% if project.demo_url and project.demo_url != "" %}<a class="button-quiet" href="{{ project.demo_url }}">Demo</a>{% endif %}
-      {% if project.docs_url and project.docs_url != "" %}<a class="button-quiet" href="{{ project.docs_url }}">Documentation</a>{% endif %}
+      {% if project.docs_url and project.docs_url != "" %}<a class="button-quiet" href="{{ project.docs_url }}" data-i18n="documentation">Documentation</a>{% endif %}
     </div>
   {% endif %}
 
   {% if project.related_posts and project.related_posts.size > 0 %}
     <div class="card-related">
-      <strong>Related writing</strong>
+      <strong data-i18n="related_writing">Related writing</strong>
       <ul>
         {% for related in project.related_posts %}
           <li><a href="{{ related.url | relative_url }}">{{ related.title | escape }}</a></li>

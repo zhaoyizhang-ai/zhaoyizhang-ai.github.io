@@ -2,6 +2,7 @@
 # The CV page will show a neutral empty-state instead of inventing content.
 
 summary: "Content will be added later."
+summary_zh: "内容将在之后添加。"
 
 education: []
 # - institution: "TODO"

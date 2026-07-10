@@ -3,6 +3,7 @@
 
 - id: "example-publication-delete-me"
   title: "Example Publication — Replace or Delete"
+  title_zh: "示例出版物——请替换或删除"
   authors:
     - name: "Example Collaborator"
       order: 1
@@ -12,9 +13,12 @@
       self: true
   year: 2026
   venue: "Example Venue (not a real publication)"
+  venue_zh: "示例发表场所（不是真实出版物）"
   abstract: >-
     Example content — replace or delete before publishing. This entry exists
     only to demonstrate the publication layout and metadata fields.
+  abstract_zh: >-
+    示例内容——发布前请替换或删除。此条目仅用于展示出版物布局与元数据字段。
   doi: ""
   arxiv: ""
   pdf_url: ""

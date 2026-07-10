@@ -8,13 +8,12 @@
     {% if site.atom_feed.hide != true %}
       <li><a href="{{ site.atom_feed.path | default: '/feed.xml' | relative_url }}"><i class="fa fa-fw fa-rss-square" aria-hidden="true"></i> RSS</a></li>
     {% endif %}
-    <li><a href="{{ '/sitemap.xml' | relative_url }}">Sitemap</a></li>
+    <li><a href="{{ '/sitemap.xml' | relative_url }}" data-i18n="sitemap">Sitemap</a></li>
   </ul>
 </div>
 
 <div class="page__footer-copyright">
   &copy; {{ site.time | date: "%Y" }} {{ site.profile.display_name | escape }}.
-  Built with <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> and
-  <a href="https://github.com/academicpages/academicpages.github.io">Academic Pages</a>,
-  based on <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.
+  <span data-lang-content="en">Built with <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> and <a href="https://github.com/academicpages/academicpages.github.io">Academic Pages</a>, based on <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</span>
+  <span data-lang-content="zh">使用 <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> 与 <a href="https://github.com/academicpages/academicpages.github.io">Academic Pages</a> 构建，基于 <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>。</span>
 </div>

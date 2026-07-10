@@ -1,6 +1,7 @@
 ---
 permalink: /service/
 title: "Service"
+title_zh: "服务"
 description: "Community and professional service."
 ---
 
@@ -12,4 +13,4 @@ description: "Community and professional service."
       <span class="cv-item__date">{{ item.period | escape }}</span>
     </article>
   {% endfor %}
-{% else %}<p class="empty-state">Content will be added later.</p>{% endif %}
+{% else %}<p class="empty-state" data-i18n="content_later">Content will be added later.</p>{% endif %}

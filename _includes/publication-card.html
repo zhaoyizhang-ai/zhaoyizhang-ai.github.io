@@ -1,23 +1,23 @@
 {% assign publication = include.publication %}
 <article class="publication-card reveal" data-year="{{ publication.year }}" data-type="{{ publication.type | escape }}">
-  {% if publication.example == true %}<span class="example-badge">Example publication — not a real work</span>{% endif %}
+  {% if publication.example == true %}<span class="example-badge" data-i18n="example_publication">Example publication — not a real work</span>{% endif %}
   {% if publication.cover and publication.cover != "" %}
     <img src="{{ publication.cover | relative_url }}" alt="{{ publication.cover_alt | escape }}" loading="lazy">
   {% endif %}
   <div class="publication-card__header">
     <div>
-      <h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>{{ publication.title | escape }}</h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>
+      <h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}><span data-lang-content="en">{{ publication.title | escape }}</span><span data-lang-content="zh">{{ publication.title_zh | default: publication.title | escape }}</span></h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>
       <p class="publication-authors">
         {% for author in publication.authors %}
           {% if author.self == true %}<strong>{{ author.name | escape }}</strong>{% else %}{{ author.name | escape }}{% endif %}{% unless forloop.last %}, {% endunless %}
         {% endfor %}
       </p>
-      <p class="publication-venue"><em>{{ publication.venue | escape }}</em> · {{ publication.year }}</p>
+      <p class="publication-venue"><em><span data-lang-content="en">{{ publication.venue | escape }}</span><span data-lang-content="zh">{{ publication.venue_zh | default: publication.venue | escape }}</span></em> · {{ publication.year }}</p>
     </div>
     <span class="type-badge">{{ publication.type | escape }}</span>
   </div>
 
-  {% if publication.abstract and publication.abstract != "" %}<p>{{ publication.abstract | escape }}</p>{% endif %}
+  {% if publication.abstract and publication.abstract != "" %}<p><span data-lang-content="en">{{ publication.abstract | escape }}</span><span data-lang-content="zh">{{ publication.abstract_zh | default: publication.abstract | escape }}</span></p>{% endif %}
 
   <div class="card-links">
     {% if publication.doi and publication.doi != "" %}
@@ -27,13 +27,13 @@
       {% if publication.arxiv contains '://' %}<a class="button-quiet" href="{{ publication.arxiv }}">arXiv</a>{% else %}<a class="button-quiet" href="https://arxiv.org/abs/{{ publication.arxiv }}">arXiv</a>{% endif %}
     {% endif %}
     {% if publication.pdf_url and publication.pdf_url != "" %}<a class="button-quiet" href="{{ publication.pdf_url | relative_url }}">PDF</a>{% endif %}
-    {% if publication.code_url and publication.code_url != "" %}<a class="button-quiet" href="{{ publication.code_url }}">Code</a>{% endif %}
-    {% if publication.project_url and publication.project_url != "" %}<a class="button-quiet" href="{{ publication.project_url }}">Project page</a>{% endif %}
+    {% if publication.code_url and publication.code_url != "" %}<a class="button-quiet" href="{{ publication.code_url }}" data-i18n="code">Code</a>{% endif %}
+    {% if publication.project_url and publication.project_url != "" %}<a class="button-quiet" href="{{ publication.project_url }}" data-i18n="project_page">Project page</a>{% endif %}
   </div>
 
   {% if include.compact != true and publication.citation and publication.citation != "" %}
     <details>
-      <summary>Citation</summary>
+      <summary data-i18n="citation">Citation</summary>
       <p>{{ publication.citation | escape }}</p>
     </details>
   {% endif %}
@@ -42,7 +42,7 @@
     <details>
       <summary>BibTeX</summary>
       <div class="bibtex-block">
-        <button class="copy-button" type="button" data-copy-bibtex="bibtex-{{ publication.id | slugify }}">Copy</button>
+        <button class="copy-button" type="button" data-copy-bibtex="bibtex-{{ publication.id | slugify }}" data-i18n="copy">Copy</button>
         <pre id="bibtex-{{ publication.id | slugify }}"><code>{{ publication.bibtex | escape }}</code></pre>
       </div>
     </details>

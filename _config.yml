@@ -12,10 +12,15 @@ profile:
   email: &profile_email "" # Replace with <EMAIL>; blank values stay hidden.
   location: &profile_location "" # Replace with <LOCATION>; optional.
   short_bio: &profile_short_bio "TODO: Add a one-sentence introduction."
+  short_bio_zh: "TODO：添加一句中文简介。"
   long_bio: >-
     TODO: Replace this paragraph with <LONG_BIO>. Describe what you do, what
     you care about, and what visitors can find on this website.
+  long_bio_zh: >-
+    TODO：请用中文替换这段 <LONG_BIO> 占位内容，介绍你在做什么、关心什么，
+    以及访客可以在这个网站找到哪些内容。
   current_status: "TODO: Add your current role, focus, or availability."
+  current_status_zh: "TODO：添加你当前的身份、关注方向或可合作状态。"
   profile_photo: "" # Replace with <PROFILE_PHOTO>, e.g. /assets/images/profile/photo.jpg.
   cv_pdf: "/files/cv.pdf"
   social:

@@ -1,8 +1,10 @@
 ---
 title: "Example Article — Code Highlighting"
+title_zh: "示例文章——代码高亮"
 date: 2026-01-02 09:00:00 +0800
 description: "A code-focused example article."
 excerpt: "Example content — replace or delete before publishing. This post demonstrates fenced code blocks and inline code."
+excerpt_zh: "示例内容——发布前请替换或删除。本文展示围栏代码块与行内代码。"
 tags: [example, code]
 categories: [Technical]
 example: true

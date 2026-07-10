@@ -23,7 +23,13 @@ function setTheme(setting) {
   const selected = themeOrder.includes(setting) ? setting :
     (themeOrder.includes(localStorage.getItem('theme')) ? localStorage.getItem('theme') : 'system');
   const resolved = selected === 'system' ? (colorSchemeQuery.matches ? 'dark' : 'light') : selected;
-  const labels = { system: 'System theme', light: 'Light theme', dark: 'Dark theme' };
+  const isChinese = document.documentElement.dataset.language === 'zh';
+  const labels = isChinese
+    ? { system: '跟随系统主题', light: '浅色主题', dark: '深色主题' }
+    : { system: 'System theme', light: 'Light theme', dark: 'Dark theme' };
+  const ariaLabels = isChinese
+    ? { system: '当前跟随系统主题，点击切换主题。', light: '当前为浅色主题，点击切换主题。', dark: '当前为深色主题，点击切换主题。' }
+    : { system: 'Theme: system. Activate to switch theme.', light: 'Theme: light. Activate to switch theme.', dark: 'Theme: dark. Activate to switch theme.' };
   const icons = { system: 'fa-circle-half-stroke', light: 'fa-sun', dark: 'fa-moon' };
 
   document.documentElement.dataset.theme = resolved;
@@ -32,8 +38,10 @@ function setTheme(setting) {
   $('#theme-label').text(labels[selected]);
   $('.theme-toggle')
     .attr('title', labels[selected])
-    .attr('aria-label', 'Theme: ' + selected + '. Activate to switch theme.');
+    .attr('aria-label', ariaLabels[selected]);
 }
+
+document.addEventListener('site:languagechange', function () { setTheme(); });
 
 // Cycle through system, light, and dark.
 function toggleTheme() {

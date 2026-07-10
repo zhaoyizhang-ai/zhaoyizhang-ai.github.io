@@ -6,14 +6,14 @@ layout: default
 <main id="main" class="home-shell" tabindex="-1">
   <section class="home-hero reveal" aria-labelledby="home-title">
     <div class="home-hero__copy">
-      <p class="home-hero__eyebrow">Personal website · Writing · Work</p>
+      <p class="home-hero__eyebrow" data-i18n="personal_eyebrow">Personal website · Writing · Work</p>
       <h1 id="home-title">{{ profile.display_name | escape }}</h1>
-      <p class="home-hero__intro">{{ profile.short_bio | escape }}</p>
-      <p class="home-hero__status">{{ profile.current_status | escape }}{% if profile.location and profile.location != "" %} · {{ profile.location | escape }}{% endif %}</p>
+      <p class="home-hero__intro"><span data-lang-content="en">{{ profile.short_bio | escape }}</span><span data-lang-content="zh">{{ profile.short_bio_zh | default: profile.short_bio | escape }}</span></p>
+      <p class="home-hero__status"><span data-lang-content="en">{{ profile.current_status | escape }}</span><span data-lang-content="zh">{{ profile.current_status_zh | default: profile.current_status | escape }}</span>{% if profile.location and profile.location != "" %} · {{ profile.location | escape }}{% endif %}</p>
 
       <div class="home-hero__actions">
-        <a class="button-primary" href="{{ profile.cv_pdf | relative_url }}">Download CV</a>
-        <a class="button-secondary" href="{{ '/about/' | relative_url }}">About me</a>
+        <a class="button-primary" href="{{ profile.cv_pdf | relative_url }}" data-i18n="download_cv">Download CV</a>
+        <a class="button-secondary" href="{{ '/about/' | relative_url }}" data-i18n="about_me">About me</a>
         {% if profile.email and profile.email != "" %}<a class="button-quiet" href="mailto:{{ profile.email }}">Email</a>{% endif %}
       </div>
 
@@ -30,7 +30,7 @@ layout: default
       {% if profile.profile_photo and profile.profile_photo != "" %}
         <img src="{{ profile.profile_photo | relative_url }}" alt="Portrait of {{ profile.display_name | escape }}" fetchpriority="high">
       {% else %}
-        <div class="profile-photo-placeholder" role="img" aria-label="Profile photo placeholder"><span aria-hidden="true">PHOTO</span></div>
+        <div class="profile-photo-placeholder" role="img" aria-label="Profile photo placeholder" data-i18n-aria-label="profile_photo"><span aria-hidden="true">PHOTO</span></div>
       {% endif %}
     </div>
   </section>
@@ -38,21 +38,21 @@ layout: default
   <section class="home-section reveal" aria-labelledby="about-heading">
     <div class="section-heading">
       <div>
-        <p class="section-kicker">About</p>
-        <h2 id="about-heading">A short introduction</h2>
+        <p class="section-kicker" data-i18n="about_kicker">About</p>
+        <h2 id="about-heading" data-i18n="about_heading">A short introduction</h2>
       </div>
-      <a class="button-quiet" href="{{ '/about/' | relative_url }}">Read more →</a>
+      <a class="button-quiet" href="{{ '/about/' | relative_url }}" data-i18n="read_more">Read more →</a>
     </div>
-    <p class="prose-lead">{{ profile.long_bio | escape }}</p>
+    <p class="prose-lead"><span data-lang-content="en">{{ profile.long_bio | escape }}</span><span data-lang-content="zh">{{ profile.long_bio_zh | default: profile.long_bio | escape }}</span></p>
   </section>
 
   <section class="home-section" aria-labelledby="projects-heading">
     <div class="section-heading reveal">
       <div>
-        <p class="section-kicker">Selected work</p>
-        <h2 id="projects-heading">Featured projects</h2>
+        <p class="section-kicker" data-i18n="work_kicker">Selected work</p>
+        <h2 id="projects-heading" data-i18n="projects_heading">Featured projects</h2>
       </div>
-      <a class="button-quiet" href="{{ '/projects/' | relative_url }}">All projects →</a>
+      <a class="button-quiet" href="{{ '/projects/' | relative_url }}" data-i18n="all_projects">All projects →</a>
     </div>
     {% assign featured_count = 0 %}
     <div class="card-grid">
@@ -63,23 +63,23 @@ layout: default
         {% endif %}
       {% endfor %}
     </div>
-    {% if featured_count == 0 %}<p class="empty-state">Content will be added later.</p>{% endif %}
+    {% if featured_count == 0 %}<p class="empty-state" data-i18n="content_later">Content will be added later.</p>{% endif %}
   </section>
 
   <section class="home-section" aria-labelledby="blog-heading">
     <div class="section-heading reveal">
       <div>
-        <p class="section-kicker">Writing</p>
-        <h2 id="blog-heading">Latest blog posts</h2>
+        <p class="section-kicker" data-i18n="writing_kicker">Writing</p>
+        <h2 id="blog-heading" data-i18n="blog_heading">Latest blog posts</h2>
       </div>
-      <a class="button-quiet" href="{{ '/blog/' | relative_url }}">Visit the blog →</a>
+      <a class="button-quiet" href="{{ '/blog/' | relative_url }}" data-i18n="visit_blog">Visit the blog →</a>
     </div>
     {% if site.posts.size > 0 %}
       <div class="post-list">
         {% for post in site.posts limit: 3 %}{% include post-card.html post=post heading_level=3 %}{% endfor %}
       </div>
     {% else %}
-      <p class="empty-state">Content will be added later.</p>
+      <p class="empty-state" data-i18n="content_later">Content will be added later.</p>
     {% endif %}
   </section>
 
@@ -91,10 +91,10 @@ layout: default
     <section class="home-section" aria-labelledby="publications-heading">
       <div class="section-heading reveal">
         <div>
-          <p class="section-kicker">Publications</p>
-          <h2 id="publications-heading">Selected publications</h2>
+          <p class="section-kicker" data-i18n="publications_kicker">Publications</p>
+          <h2 id="publications-heading" data-i18n="publications_heading">Selected publications</h2>
         </div>
-        <a class="button-quiet" href="{{ '/publications/' | relative_url }}">All publications →</a>
+        <a class="button-quiet" href="{{ '/publications/' | relative_url }}" data-i18n="all_publications">All publications →</a>
       </div>
       <div class="publication-list">
         {% for publication in site.data.publications %}

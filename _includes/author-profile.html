@@ -6,7 +6,7 @@
     {% if profile.profile_photo and profile.profile_photo != "" %}
       <img src="{{ profile.profile_photo | relative_url }}" alt="Portrait of {{ profile.display_name | escape }}" fetchpriority="high">
     {% else %}
-      <div class="profile-photo-placeholder" role="img" aria-label="Profile photo placeholder">
+      <div class="profile-photo-placeholder" role="img" aria-label="Profile photo placeholder" data-i18n-aria-label="profile_photo">
         <span aria-hidden="true">PHOTO</span>
       </div>
     {% endif %}
@@ -14,11 +14,11 @@
 
   <div class="author__content">
     <h2 class="author__name" itemprop="name">{{ profile.display_name | escape }}</h2>
-    {% if profile.short_bio %}<p class="author__bio" itemprop="description">{{ profile.short_bio | escape }}</p>{% endif %}
+    {% if profile.short_bio %}<p class="author__bio" itemprop="description"><span data-lang-content="en">{{ profile.short_bio | escape }}</span><span data-lang-content="zh">{{ profile.short_bio_zh | default: profile.short_bio | escape }}</span></p>{% endif %}
   </div>
 
   <div class="author__urls-wrapper">
-    <button class="btn btn--inverse profile-links-toggle" type="button" aria-expanded="false" aria-controls="profile-links">Profile links</button>
+    <button class="btn btn--inverse profile-links-toggle" type="button" aria-expanded="false" aria-controls="profile-links" data-i18n="profile_links">Profile links</button>
     <ul id="profile-links" class="author__urls social-icons">
       {% if profile.location and profile.location != "" %}
         <li class="author__desktop"><i class="fas fa-fw fa-location-dot icon-pad-right" aria-hidden="true"></i>{{ profile.location }}</li>
@@ -42,7 +42,7 @@
         <li><a href="{{ profile.social.x_url }}" rel="me"><i class="fab fa-fw fa-x-twitter icon-pad-right" aria-hidden="true"></i>X / Twitter</a></li>
       {% endif %}
       {% if profile.cv_pdf and profile.cv_pdf != "" %}
-        <li><a href="{{ profile.cv_pdf | relative_url }}"><i class="fas fa-fw fa-file-arrow-down icon-pad-right" aria-hidden="true"></i>Download CV</a></li>
+        <li><a href="{{ profile.cv_pdf | relative_url }}"><i class="fas fa-fw fa-file-arrow-down icon-pad-right" aria-hidden="true"></i><span data-i18n="download_cv">Download CV</span></a></li>
       {% endif %}
     </ul>
   </div>

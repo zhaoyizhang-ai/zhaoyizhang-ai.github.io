@@ -1,8 +1,10 @@
 ---
 title: "Example Blog Post — Start Here"
+title_zh: "示例博客文章——从这里开始"
 date: 2026-01-01 09:00:00 +0800
 description: "A demonstration of the blog post structure."
 excerpt: "Example content — replace or delete before publishing. A short tour of the starter blog format."
+excerpt_zh: "示例内容——发布前请替换或删除。快速了解博客文章的基本格式。"
 tags: [example, getting-started]
 categories: [Updates]
 example: true

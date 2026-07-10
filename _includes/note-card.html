@@ -1,9 +1,9 @@
 {% assign note = include.note %}
 <article class="note-card reveal">
-  {% if note.example == true %}<span class="example-badge">Example content</span>{% endif %}
-  <h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}><a href="{{ note.url | relative_url }}">{{ note.title | escape }}</a></h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>
+  {% if note.example == true %}<span class="example-badge" data-i18n="example_content">Example content</span>{% endif %}
+  <h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}><a href="{{ note.url | relative_url }}"><span data-lang-content="en">{{ note.title | escape }}</span><span data-lang-content="zh">{{ note.title_zh | default: note.title | escape }}</span></a></h{% if include.heading_level %}{{ include.heading_level }}{% else %}2{% endif %}>
   {% if note.date %}<p class="card-meta"><time datetime="{{ note.date | date_to_xmlschema }}">{{ note.date | date: "%b %d, %Y" }}</time></p>{% endif %}
-  {% if note.summary %}<p>{{ note.summary | escape }}</p>{% endif %}
+  {% if note.summary %}<p><span data-lang-content="en">{{ note.summary | escape }}</span><span data-lang-content="zh">{{ note.summary_zh | default: note.summary | escape }}</span></p>{% endif %}
   {% if note.tags and note.tags.size > 0 %}
     <ul class="tag-list" aria-label="Note tags">
       {% for tag in note.tags %}<li class="tag-chip">{{ tag | escape }}</li>{% endfor %}

@@ -1,8 +1,10 @@
 ---
 title: "Example Article — Mathematics"
+title_zh: "示例文章——数学公式"
 date: 2026-01-03 09:00:00 +0800
 description: "A math-enabled example article."
 excerpt: "Example content — replace or delete before publishing. This post demonstrates inline and display mathematics."
+excerpt_zh: "示例内容——发布前请替换或删除。本文展示行内与独立数学公式。"
 tags: [example, mathematics]
 categories: [Technical]
 example: true

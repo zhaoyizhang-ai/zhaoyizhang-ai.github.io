@@ -1,6 +1,7 @@
 ---
 permalink: /contact/
 title: "Contact"
+title_zh: "联系"
 description: "Contact and profile links."
 ---
 
@@ -8,7 +9,7 @@ description: "Contact and profile links."
 {% if profile.email and profile.email != "" %}
 Email: <a href="mailto:{{ profile.email }}">{{ profile.email | escape }}</a>
 {% else %}
-<p class="empty-state">Contact details will be added later.</p>
+<p class="empty-state" data-i18n="contact_later">Contact details will be added later.</p>
 {% endif %}
 
 <div class="link-row">

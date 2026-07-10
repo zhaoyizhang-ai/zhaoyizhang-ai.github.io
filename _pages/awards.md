@@ -1,6 +1,7 @@
 ---
 permalink: /awards/
 title: "Awards"
+title_zh: "奖项"
 description: "Awards and recognition."
 ---
 
@@ -13,4 +14,4 @@ description: "Awards and recognition."
       {% if item.description %}<p class="cv-item__details">{{ item.description | escape }}</p>{% endif %}
     </article>
   {% endfor %}
-{% else %}<p class="empty-state">Content will be added later.</p>{% endif %}
+{% else %}<p class="empty-state" data-i18n="content_later">Content will be added later.</p>{% endif %}
