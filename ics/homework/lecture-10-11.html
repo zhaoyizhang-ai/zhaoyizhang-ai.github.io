@@ -1,0 +1,70 @@
+---
+layout: null
+sitemap: false
+permalink: /ics/homework/lecture-10-11.html
+---
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>第10、11讲作业 · ICS作业参考</title><link rel="stylesheet" href="/physics/assets/katex.min.css"><style>*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#202b36;font:18px/1.9 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}main{max-width:900px;margin:30px auto;padding:30px 42px;background:white;border:1px solid #dce4e8;border-radius:12px}a{color:#166b65}h1{font-size:30px}h2{font-size:25px}h3{font-size:22px}pre{background:#16242e;color:#e8f2f3;padding:20px;overflow:auto;font:14px/1.8 Menlo,Consolas,monospace;border-radius:8px}code{font-family:Menlo,Consolas,monospace}p code,li code{background:#eef2f3;padding:2px 4px;font-size:.85em;overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.7}th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #dce4e8}th{background:#eef3f3}.table-wrap,.math{overflow-x:auto}.meta{font-size:14px;color:#617180}footer{font-size:14px;border-top:1px solid #dce4e8;margin-top:28px;padding-top:18px}@media(max-width:650px){body{font-size:17px}main{margin:12px;padding:22px 18px}h1{font-size:26px}pre{font-size:13px;padding:14px}table{min-width:430px}}</style></head><body><main><a href="/ics/">← 返回ICS讲义</a><p class="meta">配套作业参考 · 本地已有解答的网页副本</p><h1>第10、11讲作业</h1>
+<h2>第10讲</h2>
+<h3>4.51</h3>
+<p>iaddq V, rB 将立即数 V 与寄存器 rB 中的值相加，将结果写回 rB，并根据加法结果设置条件码。各阶段执行的计算如下：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>计算</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>取指</td>
+<td>icode:ifun ← M₁[PC]；rA:rB ← M₁[PC + 1]；valC ← M₈[PC + 2]；valP ← PC + 10</td>
+</tr>
+<tr>
+<td>译码</td>
+<td>valB ← R[rB]</td>
+</tr>
+<tr>
+<td>执行</td>
+<td>valE ← valB + valC；设置条件码 CC</td>
+</tr>
+<tr>
+<td>访存</td>
+<td>无</td>
+</tr>
+<tr>
+<td>写回</td>
+<td>R[rB] ← valE</td>
+</tr>
+<tr>
+<td>更新 PC</td>
+<td>PC ← valP</td>
+</tr>
+</tbody>
+</table></div>
+<p>其中，M₁ 表示读取 1 字节，M₈ 表示读取 8 字节，R[rB] 表示寄存器 rB 中的值。</p>
+<p>取指阶段与 irmovq 类似：指令包含 1 字节的指令代码、1 字节的寄存器指示符和 8 字节的立即数，共 10 字节。icode = 0xC，ifun = 0，rA = 0xF 表示不使用该寄存器字段，rB 指定目标寄存器；valC 取得立即数 V。</p>
+<p>译码阶段只读取 rB 的原值，不需要读取 rA。执行阶段选择 valC 和 valB 作为 ALU 的两个输入，执行加法，并像 addq 一样更新 ZF、SF、OF。结果为零时 ZF = 1，结果最高位为 1 时 SF = 1，发生有符号加法溢出时 OF = 1。</p>
+<p>该指令不读写数据内存，最后将加法结果 valE 写回 rB，并将 PC 更新为下一条指令的地址 valP。</p>
+<h2>第11讲</h2>
+<h3>4.57</h3>
+<p><strong>A.</strong> 加入加载转发后，需要暂停的加载/使用冒险条件为：</p>
+<pre><code class="language-hcl">E_icode in { IMRMOVQ, IPOPQ } &amp;&amp;
+(
+    E_dstM == d_srcB ||
+    (E_dstM == d_srcA &amp;&amp; !(D_icode in { IRMMOVQ, IPUSHQ }))
+)
+</code></pre>
+<p>E_icode 是当前执行阶段指令的代码，E_dstM 是该指令从内存加载数据后要写入的寄存器；D_icode 是当前译码阶段指令的代码，d_srcA、d_srcB 是它的两个源寄存器。</p>
+<p>当 E_icode 为 IMRMOVQ 或 IPOPQ 时，前一条指令需要从内存加载数据。如果 E_dstM == d_srcB，后一条指令在执行阶段就需要这个值，例如用它计算访存地址，因此仍须暂停。</p>
+<p>如果 E_dstM == d_srcA，只有后一条指令是 rmmovq 或 pushq 时，可以通过加载转发避免暂停。这两种指令将 valA 作为待写入内存的数据，到访存阶段才需要它。当加载指令处于访存阶段、存储指令处于执行阶段时，可以将 m_valM 直接前递到流水线寄存器 M 的 valA 字段，供存储指令在下一个周期使用。其他指令对 d_srcA 的这种依赖仍须暂停。</p>
+<p>例如：</p>
+<pre><code class="language-asm">mrmovq 0(%rcx), %rdx
+pushq %rdx
+</code></pre>
+<p>pushq 只把 %rdx 用作待存储的数据，可以通过加载转发消除这次加载/使用暂停。</p>
+<pre><code class="language-asm">popq %rdx
+rmmovq %rax, 0(%rdx)
+</code></pre>
+<p>这里 %rdx 是 rmmovq 的地址基址，即 d_srcB，执行阶段就要使用，因此仍须暂停。</p>
+<p>如果同一个寄存器同时作为存储数据和地址基址，例如 rmmovq %rdx, 0(%rdx)，也必须暂停；公式中的 E_dstM == d_srcB 保证了这种情况不会被漏掉。</p>
+<footer><a href="/ics/#homework">返回指定作业对应</a></footer></main></body></html>

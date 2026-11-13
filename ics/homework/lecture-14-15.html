@@ -1,0 +1,250 @@
+---
+layout: null
+sitemap: false
+permalink: /ics/homework/lecture-14-15.html
+---
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>第14、15讲作业 · ICS作业参考</title><link rel="stylesheet" href="/physics/assets/katex.min.css"><style>*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#202b36;font:18px/1.9 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}main{max-width:900px;margin:30px auto;padding:30px 42px;background:white;border:1px solid #dce4e8;border-radius:12px}a{color:#166b65}h1{font-size:30px}h2{font-size:25px}h3{font-size:22px}pre{background:#16242e;color:#e8f2f3;padding:20px;overflow:auto;font:14px/1.8 Menlo,Consolas,monospace;border-radius:8px}code{font-family:Menlo,Consolas,monospace}p code,li code{background:#eef2f3;padding:2px 4px;font-size:.85em;overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.7}th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #dce4e8}th{background:#eef3f3}.table-wrap,.math{overflow-x:auto}.meta{font-size:14px;color:#617180}footer{font-size:14px;border-top:1px solid #dce4e8;margin-top:28px;padding-top:18px}@media(max-width:650px){body{font-size:17px}main{margin:12px;padding:22px 18px}h1{font-size:26px}pre{font-size:13px;padding:14px}table{min-width:430px}}</style></head><body><main><a href="/ics/">← 返回ICS讲义</a><p class="meta">配套作业参考 · 本地已有解答的网页副本</p><h1>第14、15讲作业</h1>
+<h2>第14讲</h2>
+<h3>5.13</h3>
+<p><strong>A.</strong> 将一次迭代中的指令分解为操作后，数据依赖关系如下。其中，load u 和 load v 包括地址计算和从内存读取数据，mul、add 分别表示乘法和加法。</p>
+<pre><code class="language-text">                       i
+                       |
+              +--------+--------+
+              |                 |
+         load u[i]         load v[i]
+              |                 |
+              +--------+--------+
+                       |
+                      mul
+                       |
+sum（本次输入）-------&gt; add -------&gt; sum（下次输入）
+
+i（本次输入）---------&gt; +1 --------&gt; i（下次输入）
+                       |
+                 与 limit 比较
+                       |
+                     条件跳转
+</code></pre>
+<p>vmovsd 对应读取 udata[i]；带内存操作数的 vmulsd 可分解为读取 vdata[i] 和乘法；vaddsd 将乘积加到 sum 中。addq 更新下标，cmpq 和 jne 控制循环。</p>
+<p>跨迭代的累加依赖链为：</p>
+<pre><code class="language-text">sum₀ ---&gt; add₀ ---&gt; sum₁ ---&gt; add₁ ---&gt; sum₂ ---&gt; add₂ ---&gt; …
+           ^                   ^                   ^
+           |                   |                   |
+       u[0]*v[0]           u[1]*v[1]           u[2]*v[2]
+</code></pre>
+<p>每次加法必须等待前一次加法产生的 sum，因此连续的加法构成限制循环稳态执行速度的关键路径。各次迭代的乘法不依赖前一次的 sum，可以提前执行并相互重叠。</p>
+<p><strong>B.</strong> 根据图 5-12，double 加法的延迟为 3 个时钟周期。每处理一个元素，都必须沿累加依赖链执行一次加法，因此：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">E</mi></mrow><mi>min</mi><mo>⁡</mo></msub><mo>=</mo><mn>3.00.</mn></mrow><annotation encoding="application/x-tex">\mathrm{CPE}_{\min}=3.00.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord mathrm">CPE</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">3.00.</span></span></span></span></span></div>
+<p><strong>C.</strong> 整数加法的延迟为 1 个时钟周期，所以这条关键路径给出的下界为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">E</mi></mrow><mi>min</mi><mo>⁡</mo></msub><mo>=</mo><mn>1.00.</mn></mrow><annotation encoding="application/x-tex">\mathrm{CPE}_{\min}=1.00.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord mathrm">CPE</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.00.</span></span></span></span></span></div>
+<p>整数乘法虽然有 3 个周期的延迟，但不同迭代的乘法相互独立，不构成跨迭代的乘法依赖链。</p>
+<p><strong>D.</strong> 两种浮点版本指 float 和 double。它们的乘法延迟均为 5 个周期，但浮点乘法单元是流水线化的，而且不同迭代的乘法可以并行执行。处理器不必等到前一次乘法完成，才开始下一次乘法。</p>
+<p>因此，乘法的 5 周期延迟不会变成每个元素都必须串行付出的代价。真正限制稳态执行速度的是 sum 上延迟为 3 个周期的连续加法，所以两种浮点版本的 CPE 都可以达到 3.00。</p>
+<h3>5.14</h3>
+<p>6×1 循环展开表示每次迭代处理 6 个元素，但仍然只使用一个累积变量。代码如下，vec_ptr、data_t 及向量接口沿用教材定义。</p>
+<pre><code class="language-c">void inner6x1(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long i;
+    long length = vec_length(u);
+    long limit = length - 5;
+    data_t *udata = get_vec_start(u);
+    data_t *vdata = get_vec_start(v);
+    data_t sum = (data_t)0;
+
+    for (i = 0; i &lt; limit; i += 6) {
+        sum = sum + udata[i] * vdata[i];
+        sum = sum + udata[i + 1] * vdata[i + 1];
+        sum = sum + udata[i + 2] * vdata[i + 2];
+        sum = sum + udata[i + 3] * vdata[i + 3];
+        sum = sum + udata[i + 4] * vdata[i + 4];
+        sum = sum + udata[i + 5] * vdata[i + 5];
+    }
+
+    for (; i &lt; length; i++) {
+        sum = sum + udata[i] * vdata[i];
+    }
+    *dest = sum;
+}
+</code></pre>
+<p>主循环每次处理 6 项，剩余不足 6 项的部分由末尾循环处理。</p>
+<p><strong>A.</strong> 计算内积的每个元素都需要读取 udata[i] 和 vdata[i]，即执行两次加载。教材参考机每个周期最多执行两次加载，因此仅加载操作就给出了：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">E</mi></mrow><mo>≥</mo><mfrac><mrow><mn>2</mn><mtext> 次加载/元素</mtext></mrow><mrow><mn>2</mn><mtext> 次加载/周期</mtext></mrow></mfrac><mo>=</mo><mn>1.00.</mn></mrow><annotation encoding="application/x-tex">\mathrm{CPE}\geq\frac{2\text{ 次加载/元素}}{2\text{ 次加载/周期}}=1.00.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8193em;vertical-align:-0.136em;"></span><span class="mord"><span class="mord mathrm">CPE</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord text"><span class="mord"> </span><span class="mord cjk_fallback">次加载</span><span class="mord">/</span><span class="mord cjk_fallback">周期</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord text"><span class="mord"> </span><span class="mord cjk_fallback">次加载</span><span class="mord">/</span><span class="mord cjk_fallback">元素</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.00.</span></span></span></span></span></div>
+<p>所以任何按题设执行这些标量操作的版本都不能达到小于 1.00 的 CPE。此外，整数乘法每周期最多执行一次，浮点加法每周期最多执行一次，也分别对相应数据类型给出了 1.00 的吞吐量下界。</p>
+<p><strong>B.</strong> 6×1 展开只减少了下标更新、比较和跳转的次数，没有打断 sum 的依赖链。每组中 6 次浮点加法仍然依次依赖，至少需要 6×3 = 18 个周期，所以：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">E</mi></mrow><mi>min</mi><mo>⁡</mo></msub><mo>=</mo><mfrac><mn>18</mn><mn>6</mn></mfrac><mo>=</mo><mn>3.00.</mn></mrow><annotation encoding="application/x-tex">\mathrm{CPE}_{\min}=\frac{18}{6}=3.00.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord mathrm">CPE</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">6</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">18</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">3.00.</span></span></span></span></span></div>
+<p>因此浮点版本仍然受加法延迟限制，题目给出的 CPE 为 3.01，性能几乎没有提高。</p>
+<h3>5.15</h3>
+<p>6×6 循环展开使用 6 个独立的累积变量，每个累积变量处理一组下标，最后再将它们相加。</p>
+<pre><code class="language-c">void inner6x6(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long i;
+    long length = vec_length(u);
+    long limit = length - 5;
+    data_t *udata = get_vec_start(u);
+    data_t *vdata = get_vec_start(v);
+    data_t sum0 = (data_t)0;
+    data_t sum1 = (data_t)0;
+    data_t sum2 = (data_t)0;
+    data_t sum3 = (data_t)0;
+    data_t sum4 = (data_t)0;
+    data_t sum5 = (data_t)0;
+
+    for (i = 0; i &lt; limit; i += 6) {
+        sum0 = sum0 + udata[i] * vdata[i];
+        sum1 = sum1 + udata[i + 1] * vdata[i + 1];
+        sum2 = sum2 + udata[i + 2] * vdata[i + 2];
+        sum3 = sum3 + udata[i + 3] * vdata[i + 3];
+        sum4 = sum4 + udata[i + 4] * vdata[i + 4];
+        sum5 = sum5 + udata[i + 5] * vdata[i + 5];
+    }
+
+    for (; i &lt; length; i++) {
+        sum0 = sum0 + udata[i] * vdata[i];
+    }
+    *dest = (sum0 + sum1) + (sum2 + sum3) + (sum4 + sum5);
+}
+</code></pre>
+<p>6 条累加依赖链相互独立，处理器可以交错执行它们。对于浮点数，每条链每处理 6 个元素才需要更新一次，其延迟界限降为 3 / 6 = 0.50 CPE，因而不再是主要瓶颈。</p>
+<p>这时限制性能的是吞吐量：每个元素需要两次加载，而参考机每周期最多执行两次加载，所以加载吞吐量将 CPE 限制在不低于 1.00。整数版本还受每周期一次整数乘法的限制，浮点版本还受每周期一次浮点加法的限制。因此该版本可以接近 1.00，却不能低于这一界限。</p>
+<p>题目给出的整数 1.06、浮点 1.01 是实测值；循环控制、余数处理和最终合并等开销使实际结果略高于理想下界。</p>
+<h3>5.16</h3>
+<p>6×1a 循环展开仍然只使用一个跨迭代的累积变量，但先计算一组 6 个乘积的和，再将组内结果加入 sum，从而改变加法的结合方式。</p>
+<pre><code class="language-c">void inner6x1a(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long i;
+    long length = vec_length(u);
+    long limit = length - 5;
+    data_t *udata = get_vec_start(u);
+    data_t *vdata = get_vec_start(v);
+    data_t sum = (data_t)0;
+
+    for (i = 0; i &lt; limit; i += 6) {
+        data_t p0 = udata[i] * vdata[i];
+        data_t p1 = udata[i + 1] * vdata[i + 1];
+        data_t p2 = udata[i + 2] * vdata[i + 2];
+        data_t p3 = udata[i + 3] * vdata[i + 3];
+        data_t p4 = udata[i + 4] * vdata[i + 4];
+        data_t p5 = udata[i + 5] * vdata[i + 5];
+
+        sum = sum + ((p0 + p1) + (p2 + p3) + (p4 + p5));
+    }
+
+    for (; i &lt; length; i++) {
+        sum = sum + udata[i] * vdata[i];
+    }
+    *dest = sum;
+}
+</code></pre>
+<p>每组中的乘法和组内求和都不依赖旧的 sum，可以提前执行；旧 sum 到新 sum 的依赖路径上只剩一次加法。对于浮点数，处理 6 个元素的跨迭代累加延迟为 3 个周期，对应的延迟下界为 3 / 6 = 0.50 CPE。最终性能仍受加载及算术操作的吞吐量限制，因此题目中浮点版本的 CPE 可以接近 1.00。</p>
+<p>与 6×1 不同，6×6 和 6×1a 都改变了加法顺序。浮点加法不满足结合律，因此它们的结果可能与原程序存在舍入差异；整数版本的等价性在运算不发生有符号溢出的前提下成立。</p>
+<h2>第15讲</h2>
+<h3>7.6</h3>
+<p>各符号的情况如下。表中的“节”指符号在定义它的模块中所在的节。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>符号</th>
+<th>swap.o 的 .symtab 中有条目？</th>
+<th>符号类型</th>
+<th>定义符号的模块</th>
+<th>节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>buf</td>
+<td>是</td>
+<td>外部</td>
+<td>m.o</td>
+<td>.data</td>
+</tr>
+<tr>
+<td>bufp0</td>
+<td>是</td>
+<td>全局</td>
+<td>swap.o</td>
+<td>.data</td>
+</tr>
+<tr>
+<td>bufp1</td>
+<td>是</td>
+<td>局部</td>
+<td>swap.o</td>
+<td>.bss</td>
+</tr>
+<tr>
+<td>swap</td>
+<td>是</td>
+<td>全局</td>
+<td>swap.o</td>
+<td>.text</td>
+</tr>
+<tr>
+<td>temp</td>
+<td>否</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>incr</td>
+<td>是</td>
+<td>局部</td>
+<td>swap.o</td>
+<td>.text</td>
+</tr>
+<tr>
+<td>count</td>
+<td>是</td>
+<td>局部</td>
+<td>swap.o</td>
+<td>.bss</td>
+</tr>
+</tbody>
+</table></div>
+<p>buf 在 swap.c 中用 extern 声明，在 m.c 中定义并初始化为 {1, 2}，所以它在 swap.o 中是未定义的外部符号，实际定义位于 m.o 的 .data 节。</p>
+<p>bufp0 是已初始化的全局指针，放在 .data 中。bufp1 带有 static，只在当前模块内可见，且未显式初始化，所以是 .bss 中的局部符号。</p>
+<p>swap 是全局函数，incr 是 static 函数，二者代码均位于 .text，但前者是全局符号，后者是局部符号。</p>
+<p>temp 是普通自动局部变量，不在链接器符号表 .symtab 中。count 虽然定义在函数内部，但它是 static 局部变量，具有静态存储期，会生成局部符号；其初值为 0，因此放在 .bss 中。</p>
+<h3>7.8</h3>
+<p><strong>A.</strong> 两个 main 分别解析到各自模块中的定义：</p>
+<pre><code class="language-text">(a) REF(main.1) → DEF(main.1)
+(b) REF(main.2) → DEF(main.2)
+</code></pre>
+<p>模块 1 的 main 是全局函数，模块 2 的 main 是 static 局部变量。模块 2 的局部符号不参与跨模块的全局符号冲突，所以两者可以同时存在。</p>
+<p><strong>B.</strong> 两项都填“未知”：</p>
+<pre><code class="language-text">(a) REF(x.1) → 未知
+(b) REF(x.2) → 未知
+</code></pre>
+<p>按教材的强弱符号规则，两个未初始化的全局变量都是弱符号。链接器可以从多个弱定义中任意选择一个，因此无法仅由题目确定选择模块 1 还是模块 2；但选定之后，两处引用都解析到同一个定义。</p>
+<p>这里沿用题目规定的弱符号/COMMON 合并模型。</p>
+<p><strong>C.</strong> 两项都填“错误”：</p>
+<pre><code class="language-text">(a) REF(x.1) → 错误
+(b) REF(x.2) → 错误
+</code></pre>
+<p>int x = 1 和 double x = 1.0 都是已初始化的全局变量，属于同名强符号。链接器不允许多个同名强符号定义，因此发生链接错误，不能完成符号解析。</p>
+<h3>7.12</h3>
+<p>R_X86_64_PC32 重定位项写入的值为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">e</mi></mrow><mo>=</mo><mi>S</mi><mo>+</mo><mi>A</mi><mo>−</mo><mi>P</mi><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\mathrm{value}=S+A-P,</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathrm">value</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mpunct">,</span></span></span></span></span></div>
+<p>其中，S 是 swap 的最终地址，A = -4 是附加值，P 是重定位字段本身的地址。本题中：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo>=</mo><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">D</mi><mi mathvariant="normal">D</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false">(</mo><mtext>.text</mtext><mo stretchy="false">)</mo><mo>+</mo><mtext>0xA</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">P=\mathrm{ADDR}(\text{.text})+\text{0xA}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathrm">ADDR</span></span><span class="mopen">(</span><span class="mord text"><span class="mord">.text</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0xA</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>callq 指令位于节内偏移 0x9，长度为 5 字节；它的 4 字节位移字段从偏移 0xA 开始，下一条指令位于偏移 0xE。附加值 -4 将相对于字段起点的计算转换为相对于下一条指令地址的位移。</p>
+<p><strong>A.</strong> .text 的地址为 0x4004E0，因此：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo>=</mo><mtext>0x4004E0</mtext><mo>+</mo><mtext>0xA</mtext><mo>=</mo><mtext>0x4004EA</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">P=\text{0x4004E0}+\text{0xA}=\text{0x4004EA}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">0x4004E0</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0xA</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0x4004EA</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>代入 swap 的地址 0x4004F8，得到：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">e</mi></mrow><mo>=</mo><mtext>0x4004F8</mtext><mo>−</mo><mn>4</mn><mo>−</mo><mtext>0x4004EA</mtext><mo>=</mo><mtext>0x0000000A</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathrm{value}=\text{0x4004F8}-4-\text{0x4004EA}
+=\text{0x0000000A}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathrm">value</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">0x4004F8</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0x4004EA</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0x0000000A</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>所以重定位引用的值为 <strong>0x0000000A</strong>，按小端序写入的 4 个字节为 0A 00 00 00，完整指令字节为：</p>
+<pre><code class="language-text">e8 0a 00 00 00
+</code></pre>
+<p>下一条指令地址为 0x4004EE，加上位移 0xA，恰好得到目标地址 0x4004F8。</p>
+<p><strong>B.</strong> .text 的地址为 0x4004D0，因此：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo>=</mo><mtext>0x4004D0</mtext><mo>+</mo><mtext>0xA</mtext><mo>=</mo><mtext>0x4004DA</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">P=\text{0x4004D0}+\text{0xA}=\text{0x4004DA}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">0x4004D0</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0xA</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0x4004DA</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>代入 swap 的地址 0x400500，得到：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">e</mi></mrow><mo>=</mo><mtext>0x400500</mtext><mo>−</mo><mn>4</mn><mo>−</mo><mtext>0x4004DA</mtext><mo>=</mo><mtext>0x00000022</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathrm{value}=\text{0x400500}-4-\text{0x4004DA}
+=\text{0x00000022}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathrm">value</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">0x400500</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">0x4004DA</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord text"><span class="mord">0x00000022</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>所以重定位引用的值为 <strong>0x00000022</strong>，按小端序写入的 4 个字节为 22 00 00 00，完整指令字节为：</p>
+<pre><code class="language-text">e8 22 00 00 00
+</code></pre>
+<p>下一条指令地址为 0x4004DE，加上位移 0x22，恰好得到目标地址 0x400500。</p>
+<footer><a href="/ics/#homework">返回指定作业对应</a></footer></main></body></html>

@@ -1,0 +1,310 @@
+---
+layout: null
+sitemap: false
+permalink: /ics/homework/lecture-12-13.html
+---
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>第12、13讲作业 · ICS作业参考</title><link rel="stylesheet" href="/physics/assets/katex.min.css"><style>*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#202b36;font:18px/1.9 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}main{max-width:900px;margin:30px auto;padding:30px 42px;background:white;border:1px solid #dce4e8;border-radius:12px}a{color:#166b65}h1{font-size:30px}h2{font-size:25px}h3{font-size:22px}pre{background:#16242e;color:#e8f2f3;padding:20px;overflow:auto;font:14px/1.8 Menlo,Consolas,monospace;border-radius:8px}code{font-family:Menlo,Consolas,monospace}p code,li code{background:#eef2f3;padding:2px 4px;font-size:.85em;overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.7}th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #dce4e8}th{background:#eef3f3}.table-wrap,.math{overflow-x:auto}.meta{font-size:14px;color:#617180}footer{font-size:14px;border-top:1px solid #dce4e8;margin-top:28px;padding-top:18px}@media(max-width:650px){body{font-size:17px}main{margin:12px;padding:22px 18px}h1{font-size:26px}pre{font-size:13px;padding:14px}table{min-width:430px}}</style></head><body><main><a href="/ics/">← 返回ICS讲义</a><p class="meta">配套作业参考 · 本地已有解答的网页副本</p><h1>第12、13讲作业</h1>
+<h2>第12讲</h2>
+<h3>6.23</h3>
+<p>磁盘旋转一周所需的时间为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>T</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>=</mo><mfrac><mn>60</mn><mn>15000</mn></mfrac><mo>×</mo><mn>1000</mn><mo>=</mo><mn>4</mn><mtext> ms</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">T_{\mathrm{rotation}}=\frac{60}{15000}\times1000=4\text{ ms}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">rotation</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">15000</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">60</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1000</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">4</span><span class="mord text"><span class="mord"> ms</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>平均旋转延迟为半周，即 2 ms。每条磁道平均有 800 个扇区，因此传送一个扇区所需的时间为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>T</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi></mrow></msub><mo>=</mo><mfrac><mn>4</mn><mn>800</mn></mfrac><mo>=</mo><mn>0.005</mn><mtext> ms</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">T_{\mathrm{transfer}}=\frac{4}{800}=0.005\text{ ms}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">transfer</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">800</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.005</span><span class="mord text"><span class="mord"> ms</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>加上 4 ms 的平均寻道时间，平均访问时间为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>T</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi></mrow></msub><mo>=</mo><mn>4</mn><mo>+</mo><mn>2</mn><mo>+</mo><mn>0.005</mn><mo>=</mo><mn>6.005</mn><mtext> ms</mtext><mo>≈</mo><mn>6</mn><mtext> ms</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">T_{\mathrm{access}}=4+2+0.005=6.005\text{ ms}\approx6\text{ ms}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">access</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.005</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">6.005</span><span class="mord text"><span class="mord"> ms</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">6</span><span class="mord text"><span class="mord"> ms</span></span><span class="mord">.</span></span></span></span></span></div>
+<h3>6.24</h3>
+<p>按教材同类题的估算方式，将 2 MB 的文件近似看作 4000 个 512 字节的逻辑块。磁盘旋转一周需要 4 ms，平均旋转延迟为 2 ms，定位第一个块的平均时间为 4 + 2 = 6 ms。每个扇区的传送时间为 4 / 1000 = 0.004 ms。</p>
+<p><strong>A.</strong> 最好情况下，各逻辑块按读取顺序映射到同一柱面上的连续扇区。一个柱面有 8 条磁道，约可存放 8000 个扇区，足以容纳整个文件，因此读取过程中不需要移动传动臂。</p>
+<p>定位第一个块后，传送约 4000 个扇区需要 4 周，即 16 ms，所以总时间约为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>T</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>≈</mo><mn>6</mn><mo>+</mo><mn>4000</mn><mo>×</mo><mn>0.004</mn><mo>=</mo><mn>22</mn><mtext> ms</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">T_{\mathrm{best}}\approx6+4000\times0.004=22\text{ ms}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">best</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4000</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.004</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">22</span><span class="mord text"><span class="mord"> ms</span></span><span class="mord">.</span></span></span></span></span></div>
+<p><strong>B.</strong> 随机映射时，每读一个块都需要平均寻道时间、平均旋转延迟和一个扇区的传送时间。因此：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>T</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi></mrow></msub><mo>≈</mo><mn>4000</mn><mo>×</mo><mo stretchy="false">(</mo><mn>4</mn><mo>+</mo><mn>2</mn><mo>+</mo><mn>0.004</mn><mo stretchy="false">)</mo><mo>=</mo><mn>24016</mn><mtext> ms</mtext><mo>≈</mo><mn>24</mn><mtext> s</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">T_{\mathrm{random}}\approx4000\times(4+2+0.004)
+=24016\text{ ms}\approx24\text{ s}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">random</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4000</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.004</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">24016</span><span class="mord text"><span class="mord"> ms</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">24</span><span class="mord text"><span class="mord"> s</span></span><span class="mord">.</span></span></span></span></span></div>
+<p>忽略相对很小的传送时间时，结果约为 24000 ms。</p>
+<p>若按 1 MB = 2²⁰ 字节换算，则文件有 4096 个块，对应的最好情况为 22.384 ms，随机情况为 24592.384 ms；上述结果采用教材的近似估算口径。</p>
+<h2>第13讲</h2>
+<h3>6.30</h3>
+<p><strong>A.</strong> 高速缓存的数据容量为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo>=</mo><mi>S</mi><mo>×</mo><mi>E</mi><mo>×</mo><mi>B</mi><mo>=</mo><mn>8</mn><mo>×</mo><mn>4</mn><mo>×</mo><mn>4</mn><mo>=</mo><mn>128</mn><mtext> 字节</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">C=S\times E\times B=8\times4\times4=128\text{ 字节}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">8</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">4</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">128</span><span class="mord text"><span class="mord"> </span><span class="mord cjk_fallback">字节</span></span><span class="mord">.</span></span></span></span></span></div>
+<p><strong>B.</strong> 块大小 B = 4，因此块偏移 CO 占 2 位；组数 S = 8，因此组索引 CI 占 3 位；地址共 13 位，剩余的 8 位为标记 CT。</p>
+<pre><code class="language-text">位号     12 11 10 9 8 7 6 5 | 4 3 2 | 1 0
+字段             CT         |  CI   | CO
+位数             8          |   3   |  2
+</code></pre>
+<p>即 CT 为地址的第 12～5 位，CI 为第 4～2 位，CO 为第 1～0 位。</p>
+<h3>6.31</h3>
+<p><strong>A.</strong> 地址 0x071A 按 CT、CI、CO 分解如下：</p>
+<pre><code class="language-text">CT        | CI  | CO
+00111000  | 110 | 10
+</code></pre>
+<p><strong>B.</strong> 内存引用结果如下：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高速缓存块偏移（CO）</td>
+<td>0x2</td>
+</tr>
+<tr>
+<td>高速缓存组索引（CI）</td>
+<td>0x6</td>
+</tr>
+<tr>
+<td>高速缓存标记（CT）</td>
+<td>0x38</td>
+</tr>
+<tr>
+<td>高速缓存命中？</td>
+<td>是</td>
+</tr>
+<tr>
+<td>返回的高速缓存字节</td>
+<td>0xEB</td>
+</tr>
+</tbody>
+</table></div>
+<p>组 6 中有两行的标记都是 0x38，但第一行的有效位为 0，不能命中；第四行的有效位为 1，可以命中。第四行的数据依次为 FA、93、EB、48，块偏移为 2，所以返回 0xEB。</p>
+<h3>6.32</h3>
+<p><strong>A.</strong> 地址 0x16E8 按 CT、CI、CO 分解如下：</p>
+<pre><code class="language-text">CT        | CI  | CO
+10110111  | 010 | 00
+</code></pre>
+<p><strong>B.</strong> 内存引用结果如下：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高速缓存块偏移（CO）</td>
+<td>0x0</td>
+</tr>
+<tr>
+<td>高速缓存组索引（CI）</td>
+<td>0x2</td>
+</tr>
+<tr>
+<td>高速缓存标记（CT）</td>
+<td>0xB7</td>
+</tr>
+<tr>
+<td>高速缓存命中？</td>
+<td>否</td>
+</tr>
+<tr>
+<td>返回的高速缓存字节</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<p>组 2 中有效的两行标记分别为 0xBC 和 0xB6，没有有效且标记为 0xB7 的行，因此不命中，无法由给定的缓存内容确定返回值。</p>
+<h3>6.33</h3>
+<p>组 2 中有效的两行标记为 0xBC 和 0xB6。地址由 8 位标记、3 位组索引和 2 位块偏移组成，因此命中地址可写为：</p>
+<div class="math"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi></mrow><mo>=</mo><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">T</mi></mrow><mo>≪</mo><mn>5</mn><mo stretchy="false">)</mo><mtext>  </mtext><mi mathvariant="normal">∣</mi><mtext>  </mtext><mo stretchy="false">(</mo><mn>2</mn><mo>≪</mo><mn>2</mn><mo stretchy="false">)</mo><mtext>  </mtext><mi mathvariant="normal">∣</mi><mtext>  </mtext><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">O</mi></mrow><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">O</mi></mrow><mo>∈</mo><mo stretchy="false">{</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo separator="true">,</mo><mn>2</mn><mo separator="true">,</mo><mn>3</mn><mo stretchy="false">}</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathrm{address}=(\mathrm{CT}\ll5)\;|\;(2\ll2)\;|\;\mathrm{CO},
+\qquad \mathrm{CO}\in\{0,1,2,3\}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathrm">address</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathrm">CT</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≪</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">5</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≪</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathrm">CO</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathrm">CO</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mclose">}</span><span class="mord">.</span></span></span></span></span></div>
+<p>对应的 8 个地址如下：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>标记</th>
+<th>会命中的内存地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0xBC</td>
+<td>0x1788、0x1789、0x178A、0x178B</td>
+</tr>
+<tr>
+<td>0xB6</td>
+<td>0x16C8、0x16C9、0x16CA、0x16CB</td>
+</tr>
+</tbody>
+</table></div>
+<h3>6.34</h3>
+<p>每个 int 占 4 字节，矩阵的一行恰好占 16 字节，也就是一个高速缓存块。高速缓存共有 32 / 16 = 2 组，采用直接映射，初始为空。</p>
+<p>src[row][col] 的地址为 16 × row + 4 × col，dst[row][col] 的地址为 64 + 16 × row + 4 × col，因此两者第 row 行都映射到组 row mod 2。每次循环先读 src[i][j]，再写 dst[j][i]；写不命中时会分配缓存块，可能驱逐后续读取还要使用的 src 行。</p>
+<p>以下 h 表示命中，m 表示不命中，表格均按数组自身的行、列填写。</p>
+<p><strong>dst 数组：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>行 / 列</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+</tr>
+<tr>
+<td>1</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+</tr>
+<tr>
+<td>2</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+<td>m</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>src 数组：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>行 / 列</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>m</td>
+<td>m</td>
+<td>h</td>
+<td>m</td>
+</tr>
+<tr>
+<td>1</td>
+<td>m</td>
+<td>h</td>
+<td>m</td>
+<td>h</td>
+</tr>
+<tr>
+<td>2</td>
+<td>m</td>
+<td>m</td>
+<td>h</td>
+<td>m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>m</td>
+<td>h</td>
+<td>m</td>
+<td>h</td>
+</tr>
+</tbody>
+</table></div>
+<p>例如，i = 0 时，读 src[0][0] 不命中，随后的 dst[0][0] 写分配将 src 的第 0 行驱逐，因此读 src[0][1] 仍不命中。写 dst[1][0] 使用另一组，不会驱逐刚载入的 src 行，所以读 src[0][2] 命中；接着写 dst[2][0] 又将该行驱逐，导致读 src[0][3] 不命中。</p>
+<p>dst 按列写入，相邻两次写入同一行之间，该行已经被映射到同组的其他行驱逐，因此 16 次写入全部不命中。src 共发生 10 次不命中，总计 26 次不命中。</p>
+<h3>6.35</h3>
+<p>高速缓存增大到 128 字节后，共有 128 / 16 = 8 组。src 的 4 行依次映射到组 0～3，dst 的 4 行依次映射到组 4～7，彼此没有冲突，并且可以同时保存在高速缓存中。</p>
+<p>因此，每个数组的每一行都只有第一次访问发生冷不命中，其余访问全部命中。表格仍按数组自身的行、列填写。</p>
+<p><strong>dst 数组：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>行 / 列</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+<tr>
+<td>1</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+<tr>
+<td>2</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+<tr>
+<td>3</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>src 数组：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>行 / 列</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+<tr>
+<td>1</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+<tr>
+<td>2</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+<tr>
+<td>3</td>
+<td>m</td>
+<td>h</td>
+<td>h</td>
+<td>h</td>
+</tr>
+</tbody>
+</table></div>
+<p>src 和 dst 各发生 4 次不命中，总计 8 次不命中。</p>
+<footer><a href="/ics/#homework">返回指定作业对应</a></footer></main></body></html>
