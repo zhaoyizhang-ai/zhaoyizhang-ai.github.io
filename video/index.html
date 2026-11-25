@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自回归视频后训练精读</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Direction: a quiet study notebook. Cool paper, ink text, one blue accent that matches the figures;
+   purple always means cached clean KV, green always means output. Layout: left index + one reading column. */
+:root{
+  --bg:#F5F6F9; --paper:#FFFFFF; --surface:#EFF1F6; --ink:#192033; --ink2:#465068; --ink3:#78829A;
+  --line:#E1E5EC; --line2:#C8CEDB; --accent:#2D49D6; --accent-soft:#E7ECFD;
+  --purple:#5E4BC4; --purple-soft:#ECE9FB; --green:#0E8A66; --green-soft:#DDF3EA;
+  --amber:#9A6412; --amber-soft:#FBF0DA; --red:#B83636;
+  --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC",Georgia,serif;
+  --font-body:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  /* figure tokens (the figure code reads these) */
+  --surface-1:var(--surface); --border:var(--line); --border-strong:var(--line2);
+  --text-primary:var(--ink); --text-secondary:var(--ink2); --text-muted:var(--ink3);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1118; --paper:#141922; --surface:#1B212C; --ink:#E7EAF1; --ink2:#AFB7C8; --ink3:#7F899D;
+    --line:#263040; --line2:#3A4558; --accent:#8FA2FF; --accent-soft:#1C2548;
+    --purple:#B2A6FF; --purple-soft:#241F47; --green:#52D3A8; --green-soft:#0F3329;
+    --amber:#E5B661; --amber-soft:#3A2D12; --red:#F08A8A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1118; --paper:#141922; --surface:#1B212C; --ink:#E7EAF1; --ink2:#AFB7C8; --ink3:#7F899D;
+  --line:#263040; --line2:#3A4558; --accent:#8FA2FF; --accent-soft:#1C2548;
+  --purple:#B2A6FF; --purple-soft:#241F47; --green:#52D3A8; --green-soft:#0F3329;
+  --amber:#E5B661; --amber-soft:#3A2D12; --red:#F08A8A; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.85;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-underline-offset:3px}
+.shell{max-width:1200px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px}
+nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:36px 0 36px;font-size:14px;line-height:1.5}
+nav.toc .brand{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--ink);margin:0 0 18px;line-height:1.4}
+nav.toc a{display:block;color:var(--ink2);text-decoration:none;padding:5px 0 5px 12px;border-left:2px solid var(--line)}
+nav.toc a:hover{color:var(--ink);border-left-color:var(--accent)}
+nav.toc a.l2{padding-left:26px;font-size:13px;color:var(--ink3)}
+nav.toc .sec{font-size:11px;letter-spacing:.08em;color:var(--ink3);margin:18px 0 4px;text-transform:uppercase}
+main{min-width:0;max-width:800px;padding:44px 0 120px}
+header.hero{padding:6px 0 30px;border-bottom:1px solid var(--line);margin-bottom:10px}
+header.hero .eyebrow{font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.06em}
+header.hero h1{font-family:var(--font-display);font-weight:700;font-size:38px;line-height:1.3;margin:10px 0 14px;text-wrap:balance}
+header.hero p{color:var(--ink2);margin:0;max-width:60ch}
+h2{font-family:var(--font-display);font-size:30px;line-height:1.35;margin:72px 0 10px;text-wrap:balance;scroll-margin-top:20px}
+h2 .num{display:block;font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.08em;margin-bottom:6px}
+h3{font-family:var(--font-display);font-size:22px;line-height:1.4;margin:46px 0 6px;text-wrap:balance}
+h4{font-size:16px;margin:28px 0 4px;color:var(--ink)}
+p{margin:0 0 1.05em}
+ul,ol{margin:0 0 1.1em;padding-left:1.3em}
+li{margin:.25em 0}
+strong{font-weight:650}
+code{font-family:var(--font-mono);font-size:.88em;background:var(--surface);padding:.1em .38em;border-radius:5px}
+pre{font-family:var(--font-mono);font-size:13.5px;line-height:1.6;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;margin:0 0 1.2em}
+pre code{background:none;padding:0;font-size:inherit}
+sub,sup{line-height:0}
+.lead{font-size:17.5px;color:var(--ink2)}
+.crux{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:16px 20px 6px;margin:22px 0 26px}
+.crux .lab{display:block;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--accent);margin-bottom:6px}
+.qa{border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:14px 18px 4px;margin:18px 0}
+.qa .q{font-weight:650;margin-bottom:.4em}
+.qa .q::before{content:"问";display:inline-block;background:var(--ink);color:var(--bg);font-size:12px;font-weight:700;border-radius:5px;padding:0 6px;margin-right:8px;line-height:1.6}
+.fix{border:1px solid var(--amber);background:var(--amber-soft);border-radius:12px;padding:14px 18px 4px;margin:18px 0}
+.fix .lab{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--amber);display:block;margin-bottom:4px}
+.tg{display:inline-block;font-size:11.5px;font-weight:650;padding:0 7px;border-radius:5px;line-height:1.7;margin:0 2px;vertical-align:1px;white-space:nowrap}
+.tg.p{background:var(--accent-soft);color:var(--accent)}
+.tg.c{background:var(--green-soft);color:var(--green)}
+.tg.i{background:var(--amber-soft);color:var(--amber)}
+figure.fig{margin:26px 0 30px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 18px 12px;overflow:hidden}
+figure.fig .fig-body{overflow-x:auto}
+figure.fig figcaption{font-size:13.5px;color:var(--ink3);border-top:1px dashed var(--line);margin-top:10px;padding-top:8px;line-height:1.6}
+.fig button{font:inherit;font-size:13.5px;color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:5px 12px;cursor:pointer;line-height:1.4}
+.fig button:hover{border-color:var(--accent);color:var(--accent)}
+.fig button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.fig button:focus-visible,.fig input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fig input[type=range]{accent-color:var(--accent);vertical-align:middle}
+.fig label{font-size:13.5px;color:var(--ink2)}
+.fig .rd{font-size:14px;line-height:1.7;margin-top:8px;color:var(--ink)}
+.fig .ft{font-size:12.5px;line-height:1.6;margin-top:4px;color:var(--ink3)}
+.fig .bar{display:flex;align-items:center;gap:10px;margin:0 0 8px;flex-wrap:wrap}
+.fig svg text{font-family:var(--font-body)}
+details.ev{border:1px solid var(--line);border-radius:12px;background:var(--paper);margin:20px 0;padding:0 18px}
+details.ev summary{cursor:pointer;padding:12px 0;font-weight:650;list-style:none}
+details.ev summary::before{content:"＋";color:var(--accent);margin-right:8px}
+details.ev[open] summary::before{content:"－"}
+details.ev[open]{padding-bottom:6px}
+.tbl{overflow-x:auto;margin:16px 0 22px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.6}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--surface);font-weight:650;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.n,th.n{font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13.5px;color:var(--ink2);margin:10px 0 18px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0 22px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px 4px}
+.card h4{margin:0 0 4px;font-family:var(--font-display);font-size:17px}
+hr{border:none;border-top:1px solid var(--line);margin:40px 0}
+.small{font-size:14px;color:var(--ink3)}
+@media (max-width:1000px){
+  .shell{grid-template-columns:1fr;gap:0}
+  nav.toc{display:none}
+  main{padding-top:24px}
+  header.hero h1{font-size:30px}
+  h2{font-size:25px;margin-top:56px}
+}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="toc" aria-label="目录">
+<p class="brand">自回归视频后训练<br>精读笔记</p>
+<a href="#how">怎么读</a>
+<a href="#overview">01 总览</a>
+<a class="l2" href="#data">每个阶段的数据</a>
+<a class="l2" href="#dirs">三个方向</a>
+<a href="#basics">02 共同基础</a>
+<a class="l2" href="#who">token 怎么知道自己是谁</a>
+<a class="l2" href="#fwd">一次前向</a>
+<a class="l2" href="#kv">KV 与刷新</a>
+<a class="l2" href="#masks">谁能看谁</a>
+<a class="l2" href="#dmd">DMD 速览</a>
+<a href="#bc-orig">03 B+C：原来的做法</a>
+<a class="l2" href="#bc-steps">操作顺序</a>
+<a class="l2" href="#bc-fig">图：输入怎么拼</a>
+<a class="l2" href="#bc-problem">两个问题</a>
+<a href="#cf-bc">04 B/C：Causal Forcing</a>
+<a class="l2" href="#cf-inj">帧级单射性</a>
+<a class="l2" href="#cf-tf">TF 和 DF</a>
+<a class="l2" href="#cf-steps">操作顺序</a>
+<a class="l2" href="#cf-fig2">C 的造数据</a>
+<a class="l2" href="#cf-qa">常问的问题</a>
+<a href="#sf">05 D：Self Forcing</a>
+<a class="l2" href="#sf-infer">推理</a>
+<a class="l2" href="#sf-train">训练</a>
+<a href="#rf">06 D：Rolling Forcing</a>
+<a class="l2" href="#rf-infer">推理</a>
+<a class="l2" href="#rf-sink">sink 与 RoPE</a>
+<a class="l2" href="#rf-train">训练</a>
+<a class="l2" href="#rf-lim">局限</a>
+<a href="#compare">07 对比与关系</a>
+<a href="#appendix">08 附录</a>
+<a class="l2" href="#fixes">易错点</a>
+<a class="l2" href="#todo">待核对</a>
+</nav>
+<main>
+<header class="hero" id="top">
+  <div class="eyebrow">自回归视频扩散 · 后训练 · 精读笔记</div>
+  <h1>三篇工作，三个阶段：Self Forcing、Rolling Forcing、Causal Forcing</h1>
+  <p>按 A/B/C/D 阶段划分，把每篇画成“chunk × 去噪步”的计算图，讲清每个阶段的输入、操作顺序、怎么推理、怎么训练、和别人差在哪。图都可以点。</p>
+</header>
+
+<h2 id="how"><span class="num">00</span>怎么读这份笔记</h2>
+<p>先把后训练拆成几个阶段，每个阶段单独讲：B 和 C 是怎么把双向 Wan 变成因果、4 步的模型，D 是怎么在自己生成的历史上继续训练。Self Forcing 和 Rolling Forcing 共用同一个 B+C，只在 D 上不同；Causal Forcing 改的是 B 和 C，D 沿用 Self Forcing。所以顺序是：共同基础，B+C 的原来做法，Causal Forcing 怎么改 B+C，两个 D，最后对比。</p>
+<p>每一节都先讲<strong>核心难点和思路</strong>，再给<strong>操作顺序</strong>（拿哪个 ckpt，一步一步做什么，需要什么数据），再看图，图之后重讲一遍。正文只讲方法，数字放进折叠的“口径与证据”里。</p>
+<p>术语用英文缩写：TF 是 teacher forcing（训练时上下文用数据里干净的内容），DF 是 diffusion forcing（上下文带噪，每个 chunk 独立抽噪声等级）。标记 <span class="tg i">推断</span> 表示是我推出来、论文没直接写的，引用前要核对。</p>
+
+<h3 id="legend">图里的颜色约定</h3>
+<div class="legend">
+  <span><i style="background:#85B7EB"></i>当前正在去噪的 chunk（越脏越深）</span>
+  <span><i style="background:#9FE1CB"></i>t1：这次降到干净，输出</span>
+  <span><i style="background:#CECBF6;border:1px solid #7F77DD"></i>干净的内容（缓存 KV，或数据里的前缀 G）</span>
+  <span><i style="background:#5DCAA5"></i>X：教师走完的结果</span>
+  <span><i style="background:transparent;border:2px solid #185FA5"></i>蓝框：选中的 chunk，或有梯度的行</span>
+  <span><i style="background:#E1F5EE;border:1px solid #0F6E56"></i>KV 刷新</span>
+</div>
+<p>横轴是 chunk，纵轴是一次次前向或教师的去噪时间。一个 <strong>chunk 是 3 个 latent 帧</strong>，共用同一个噪声等级。噪声等级用 t4（最脏，纯噪声）到 t1（最后一步）表示，所有论文都按 4 步画，方便并排比较。Rolling Forcing 论文实际是 5 步、窗口也是 5 个 chunk，这里只是统一画法。</p>
+
+<h2 id="overview"><span class="num">01</span>总览：一条流水线，三篇各改一个位置</h2>
+<div class="crux">
+  <span class="lab">核心思路</span>
+  <p>我们想要一个因果的、4 步的、能流式生成的视频模型，手里只有一个双向的、几十步的 Wan。把它变成目标模型要经过几个阶段，一篇论文通常只在其中一个阶段有创新，其余沿用别人的。所以比较两个算法之前，必须先对齐前面的阶段，否则分不清效果来自哪里。</p>
+</div>
+<ul>
+  <li><strong>A 动作/相机条件</strong>：只有世界模型需要，本笔记不涉及。</li>
+  <li><strong>B 因果生成适配</strong>：把双向变成单向。</li>
+  <li><strong>C 少步初始化</strong>：把几十步变成 4 步，用 ODE 蒸馏或因果一致性蒸馏。</li>
+  <li><strong>D 自身历史训练</strong>：模型先自己滚出一段，再在自己生成的历史上接受监督。</li>
+</ul>
+<p>三篇的完整流水线，注意 ckpt 是怎么传下去的：</p>
+<pre><code>Self Forcing / Rolling Forcing
+  双向 Wan ──[B+C 合在一起：双向教师，ODE 回归]──▶ ode_init ──[D]──▶ 最终模型
+
+Causal Forcing
+  双向 Wan ──[B：TF 训自回归模型]──▶ AR 模型 ──[C：因果 ODE]──▶ causal_ode ──[D]──▶ 最终模型
+
+D 里：Self Forcing 逐 chunk 滚出；Rolling Forcing 用滚动窗口；Causal Forcing 沿用 Self Forcing 的</code></pre>
+<p>下面这张表可以点每一行，高亮的格子是这篇的创新，灰色是沿用别人的。</p>
+<figure class="fig" data-fig="overview"><div class="fig-body"></div><figcaption>三篇在 A/B/C/D 里的位置。</figcaption></figure>
+
+<h3 id="data">每个阶段需要什么数据</h3>
+<p>这是最容易弄混的一点，先记在这里，后面各节会逐一展开：</p>
+<ul>
+  <li><strong>原来的 B+C</strong>：只需要 prompt。双向教师从纯噪声出发推理，自己生成整段视频和轨迹。</li>
+  <li><strong>Causal Forcing 的 B</strong>：需要一批干净视频（外加 prompt）。这些视频是双向 Wan 根据 prompt 合成的，不是外部拍的真实视频。</li>
+  <li><strong>Causal Forcing 的 C</strong>：需要同一批视频当干净前缀（外加 prompt），教师仍然是从纯噪声出发推理。</li>
+  <li><strong>D（三篇都一样）</strong>：只需要 prompt，学生自己滚出视频，不需要视频。</li>
+</ul>
+
+<h3 id="dirs">学姐说的三个可以突破的方向</h3>
+<ol>
+  <li><strong>去噪/计算图设计</strong>：一次前向里放什么、噪声等级怎么排。Rolling Forcing 改在这里。</li>
+  <li><strong>监督设计</strong>：比如用更全局的奖励配合 DMD。三篇的 D 都是 DMD，这个方向还是空的。</li>
+  <li><strong>memory</strong>：KV 怎么编排、驱逐、sink、检索。Rolling Forcing 的 sink 属于这里。</li>
+</ol>
+<p>性能同样重要，要看<strong>首块延迟</strong>和<strong>稳定后的 FPS</strong>，类比 LLM 的首 token 时间和稳定吞吐。论文报的延迟并不是首块延迟，后面会单独讲。</p>
+
+<h3 id="oneline">三篇各一句话</h3>
+<div class="cards">
+  <div class="card"><h4>Self Forcing</h4><p>D 阶段的基准：训练时让模型自己滚出历史，再对整段视频做 DMD。</p></div>
+  <div class="card"><h4>Rolling Forcing</h4><p>D 阶段：推理时让窗口里多个 chunk 带着递增噪声并行去噪，误差在定稿前被互相修正。</p></div>
+  <div class="card"><h4>Causal Forcing</h4><p>B/C 阶段：ODE 初始化要求教师也是自回归的，否则学生学到的是平均。</p></div>
+</div>
+
+<h2 id="basics"><span class="num">02</span>共同基础：一次前向到底在做什么</h2>
+<div class="crux">
+  <span class="lab">核心难点</span>
+  <p>计算图里的一个格子看起来很简单，背后其实叠着四件事：token、噪声等级、KV 缓存、谁能看谁。不先把它们分清楚，后面三篇的差别读出来都是模糊的。</p>
+  <span class="lab">思路</span>
+  <p>从 token 的层面把一次前向拆开，只记四个结论：噪声等级走时间步嵌入，位置走 RoPE；窗口里所有 token 并行算，互相全部可见；历史只以 KV 的形式存在，而且必须额外刷新一次才能用；DMD 是三篇共用的监督。</p>
+</div>
+
+<h3 id="units">2.1 帧、chunk、token，三个层次</h3>
+<p>视频先过 VAE，时间维压缩 4:1，得到 latent 帧。所以 3 个 latent 帧大约对应 12 个像素帧（第一个 chunk 因为 VAE 的 1+4k 规则会少一点）。<span class="tg i">推断</span></p>
+<p>一个 latent 帧再被切成 H′×W′ 个空间 token，这就是 Q、K、V 真正的单位。三个层次各管一件事：</p>
+<ul>
+  <li><strong>token</strong>：Q/K/V 的单位。</li>
+  <li><strong>latent 帧</strong>：噪声等级和时间位置的单位，一帧里的 token 共用同一个噪声等级。</li>
+  <li><strong>chunk</strong>：3 个 latent 帧一组，噪声等级相同，注意力的分组也按它来。</li>
+</ul>
+
+<h3 id="who">2.2 token 怎么知道自己是谁、有多脏</h3>
+<p>token 自己并不带一个“噪声等级”的数。模型靠两条路径知道：</p>
+<p><strong>噪声等级走时间步嵌入。</strong>每一帧有自己的时间步，变成一个向量，在每一层里对这一帧的所有 token 做同样的缩放和平移（adaLN）。代码里是按帧做的：序列被切成“帧数 × 每帧 token 数”，每一帧乘自己的那份调制。同一个 chunk 的 3 帧值相同，只是因为它们被分配了同一个等级，并不是按 chunk 算一次。</p>
+<p><strong>位置走 RoPE。</strong>RoPE 有三个分量：帧序号 t、行 h、列 w，加在 Q 和 K 上，每个 token 一组。</p>
+<p>拿每帧只有 2×2 个 token、一个 chunk 3 帧的小例子看：</p>
+<pre><code>帧 0         帧 1         帧 2
+(0,0)(0,1)   (0,0)(0,1)   (0,0)(0,1)      括号里是 (h, w)
+(1,0)(1,1)   (1,0)(1,1)   (1,0)(1,1)</code></pre>
+<ul>
+  <li>同一帧内：时间步嵌入相同，帧序号 t 相同，只有 (h, w) 不同。</li>
+  <li>跨帧、同一个 (h, w)：RoPE 的空间分量相同，时间分量不同。</li>
+  <li>整个 chunk 12 个 token：时间步嵌入的值都一样，RoPE 每个都不一样。</li>
+</ul>
+
+<h3 id="fwd">2.3 一次前向在 token 层面是什么样</h3>
+<p>先说结论再看图。一次前向里，窗口（正在去噪的那些帧）的所有 token 同时进入模型，一层一层地走。每一层的 attention 里，窗口 token 的 Q 去和两类 K/V 做注意力：缓存里已经输出的帧，以及窗口自己。走完所有层，每个窗口帧由它自己的 token 经过一个输出头，得到一个 velocity。</p>
+<p>下面的图左边是输入和输出，右边是其中一层 attention 的 Q×KV（行是 Q，列是 K/V）。点窗口里的帧可以换行。</p>
+<figure class="fig" data-fig="token"><div class="fig-body"></div><figcaption>一帧画成一列小方块，代表它的一堆 token，不是真实的空间排布。紫色是缓存，蓝色是窗口。</figcaption></figure>
+<p>再把图讲一遍：</p>
+<ul>
+  <li><strong>Q 只有窗口的帧</strong>。缓存帧没有 Q 行，所以它们不被更新，也不产生输出。</li>
+  <li><strong>K/V 有两部分</strong>：缓存（紫）加窗口（蓝）。每格是“一帧对一帧的全部 token 对”。</li>
+  <li><strong>整块都是满的，没有遮罩</strong>。窗口里的任何一帧能看缓存，也能看窗口里的所有帧，包括噪声比自己大或小的 chunk。</li>
+  <li><strong>每层输出的是 hidden</strong>，不是干净结果。只有最后一层加输出头，才得到 velocity，再换算成每个窗口帧的干净预测 x̂₀。一次前向给窗口里每一帧都出一个预测，不是只出一个。</li>
+  <li><strong>并行不等于独立</strong>。帧与帧之间在每层 attention 里互相读 K/V，所以会互相影响。要说“互不干扰”，只有一个意义：同一次传播里，谁也看不到别人这一次的新结果，大家看到的都是这次传播的输入。</li>
+</ul>
+
+<div class="qa">
+  <p class="q">同时去噪这么多帧，模型做得到吗？</p>
+  <p>结构上没有问题。attention 对 token 数量没有限制，只要维度一致；每个 token 带着自己所属帧的时间步嵌入。窗口放 12 帧还是 15 帧，只是计算量不同。能不能训好是另一回事，那是训练要解决的。</p>
+  <p>窗口里被去噪的帧数 = 去噪步数 × chunk 的帧数。你可能会把“窗口 + 缓存”的总长度也算进去，但缓存帧只提供 K/V，不被去噪。</p>
+</div>
+
+<h3 id="kv">2.4 KV 是什么，为什么要刷新</h3>
+<p>KV 是已经输出的帧，在每一层 attention 里算出来的 K 和 V，存下来的结果。“能看到 KV”的意思是：窗口里 token 的 Q 去和这些 K 做注意力、取这些 V。看到的是窗口，历史不会反过来看窗口。</p>
+<p>读 KV 等价于“让这些历史帧以干净状态一起进来再过一次前向，只是不要它们的输出”。这个等价是严格成立的，因为历史帧是因果的：它们只看更早的帧，不看窗口，所以每一层的 K、V 不会随窗口变化，算一次存下来就行。窗口里的帧每次噪声都在变，并且互相看，K、V 每次都不同，所以不能存。</p>
+<div class="qa">
+  <p class="q">一个 chunk 降到干净、输出之后，能立刻当 KV 用吗？</p>
+  <p>不能。输出的是干净预测 x̂₀，是一张“图像”，不是 KV。要得到它的 KV，必须把 x̂₀ 当作输入（噪声等级设为 0）再单独过一遍模型，把每一层的 K、V 存下来。窗口前向里这个 chunk 自己算出的 K、V 不能直接用：那时它输入的是带噪版本，还和更脏的后续 chunk 双向看着，和“干净输入、只看历史”算出的不一样。</p>
+  <p>这一遍叫 <strong>KV 刷新</strong>。刷新时只有这一个 chunk 在算，别人都在等，下一次传播要等它做完才能开始，所以它在关键路径上。三篇的推理和 D 阶段的训练里都有这一步，图里用薄的绿色行表示。</p>
+</div>
+
+<h3 id="io">2.5 一次传播的输入、输出，和“0”在哪里</h3>
+<p>以窗口传播为例：</p>
+<ol>
+  <li>输入是窗口里各 chunk 带着各自噪声的 latent，不是 clean。</li>
+  <li>模型对每一帧输出一个速度，换算成这一帧的干净预测 x̂₀。</li>
+  <li>最老的 chunk 如果在最后一步，它的 x̂₀ 就是输出。</li>
+  <li>其余 chunk 把 x̂₀ <strong>重新加噪</strong>到各自的下一个噪声等级，作为下次输入。这里用的是新采的噪声，不是沿着 ODE 走一步。</li>
+</ol>
+<p>所以窗口传播的输入里<strong>没有 0 这个噪声等级</strong>。“到 0”指的是最后一步的输出是干净预测，并不是哪个块以 0 作为输入。t=0 只出现在 KV 刷新那一次前向里（代码里叫 <code>context_noise</code>，设为 0）。</p>
+
+<h3 id="masks">2.6 谁能看谁：三种注意力</h3>
+<p>三篇用到三种不同的“谁能看谁”，容易混。先看图再说差别。</p>
+<figure class="fig" data-fig="masks"><div class="fig-body"></div><figcaption>块级注意力矩阵。点上方按钮切换。</figcaption></figure>
+<ul>
+  <li><strong>块因果</strong>是 B、C 阶段训出来的模型原本的方式：一个 chunk 读自己和更早的 chunk。Self Forcing 和 Causal Forcing 的推理都是这样。</li>
+  <li><strong>滚动窗口</strong>：窗口内是全双向，没有遮罩；窗口读缓存，缓存不读窗口。这个“窗口内全双向”和 C 阶段训过的块因果不同，我推断这种能力要靠 D 阶段训练补上。<span class="tg i">推断</span></li>
+  <li><strong>TF 的掩码</strong>：数据里干净的上下文 G 和带噪的 chunk N 拼在一个序列里。带噪的 N<sub>i</sub> 读更早的干净 G，加上自己，读不到 G<sub>i</sub>。Causal Forcing 的 B 和 C 用它。</li>
+</ul>
+
+<h3 id="dmd">2.7 DMD 速览：三篇共用的监督</h3>
+<p>三篇的 D 阶段都用 DMD，先在这里讲一次。它的特点是<strong>不需要任何视频</strong>，只需要文本 prompt。</p>
+<ol>
+  <li>生成器自己滚出一段视频，得到每个 chunk 的干净预测 x̂₀，拼成一整段“预测视频”。</li>
+  <li>把这段视频加噪到一个随机的噪声等级。</li>
+  <li>加噪后的视频分别送给两个网络：<strong>教师</strong>（冻结，代表数据该有的分布，带 CFG）和<strong>假分数网络</strong>（代表生成器当前产出的分布，跟着生成器一起训练）。</li>
+  <li>两者给出的预测之差，指出了 x̂₀ 应该往哪个方向挪才更像教师的分布。代码里把这个差当作 x̂₀ 上的梯度，不对这两个网络求导，再通过前面那几次带梯度的前向传给生成器。</li>
+  <li>假分数网络自己用生成器的输出做普通的去噪训练，更新得比生成器更频繁，这样才跟得上。</li>
+  <li>损失只在视频靠后的一段上算，长度和教师能处理的长度对齐，更早的部分只提供历史。</li>
+</ol>
+<div class="qa">
+  <p class="q">教师是不是也生成了 8 个视频来和学生比？</p>
+  <p>不是。教师没有生成任何视频，它只对“加噪后的预测视频”做一次前向，给出一个预测。我们图里画的 C1 到 C8 是<strong>同一个视频</strong>的 8 个 chunk，不是 8 个视频。这个数也不是固定的：每次迭代视频长度在一个范围内随机抽。</p>
+</div>
+<div class="qa">
+  <p class="q">一个训练 step 到底做了什么？“50%”是什么意思？</p>
+  <p>一个 step 就是一次参数更新：先 rollout（里面有很多次前向，大部分不带梯度），再对其中被选中的几次前向做 backward，更新参数，激活值用完就丢，各 step 互相独立。</p>
+  <p>“50%”指的是 rollout 用哪种方式：Rolling Forcing 的训练里，每次迭代有一半概率走滚动窗口，一半概率走 Self Forcing 的方式。参数更新也有两种：假分数网络每个 step 都更新，生成器更新得更少。</p>
+</div>
+
+<h2 id="bc-orig"><span class="num">03 · B+C 阶段 · 原来的做法</span>把双向 Wan 变成因果、4 步的模型</h2>
+<div class="crux">
+  <span class="lab">核心难点</span>
+  <p>手里只有一个双向的、几十步的 Wan，要得到一个因果的、4 步的模型。要同时改两件事：双向变因果，几十步变 4 步。而且没有现成的“因果、4 步”的样本可以学。</p>
+  <span class="lab">思路</span>
+  <p>让原版 Wan 当教师，把它的去噪过程存下来，让因果的学生去回归这个过程的终点。这叫 ODE 蒸馏。变因果和变 4 步在同一次回归里一起完成，所以 B 和 C 合在了一起。这个做法来自 CausVid，Self Forcing 和 Rolling Forcing 直接用它的结果，是同一份权重。</p>
+</div>
+
+<h3 id="bc-words">3.1 先弄清几个词</h3>
+<p><strong>教师是怎么去噪的。</strong>教师是多步的扩散模型。每一步：把当前整段视频的潜变量送进教师做一次前向，得到 velocity，沿着它用 Euler 走一小步，得到下一个更干净的潜变量。这样走几十步，从纯噪声走到干净视频。</p>
+<p><strong>快照。</strong>沿途存下几个时刻的潜变量，就是快照。存的是潜变量本身，也就是视频过 VAE 之后的那个张量，不是 velocity，也不是网络内部的 hidden。第一个快照是纯噪声，就是教师第一次前向之前的输入。走完以后的结果记作 X。</p>
+<p><strong>ODE 回归。</strong>训学生：给它一个快照，让它一步预测出教师走完的 X，用均方误差。“题目”是快照，“答案”是 X。</p>
+<p><strong>学生推理时怎么走 4 步。</strong>学生每一步先出 velocity，换算成干净结果：</p>
+<p>x̂₀ = xₜ − σ·v</p>
+<p>再往这个干净结果里加一份新采的噪声，加到下一个噪声等级，作为下一次的输入。所以学生的一步是个大步，而且每次加的是新噪声，不在教师那条路上。</p>
+<div class="qa">
+  <p class="q">为什么教师和学生前进的方式不一样？</p>
+  <p>教师给出的 velocity 是当前这一点上的方向，只在很小的一段范围内准，所以要走很多小步才稳。学生要快，只走 4 步，每一步都是大跳，沿 velocity 直接走大步会很不准，所以改成在每个噪声等级上直接预测终点。但下一次前向需要一个下一个等级的带噪输入，只好把预测的干净结果再加一份新噪声。ODE 回归训练的，正是这个“直接预测终点”的能力。</p>
+</div>
+
+<h3 id="bc-steps">3.2 操作顺序</h3>
+<p>起点 ckpt：<strong>双向 Wan 的预训练权重</strong>。需要的数据：<strong>只要 prompt</strong>。</p>
+<ol>
+  <li><strong>准备 prompt</strong>，只要文本。</li>
+  <li><strong>造数据（教师只推理，不训练）</strong>：用原版双向 Wan，对每个 prompt 从纯噪声出发，整段视频一起去噪，带 CFG，走几十步。沿途存 4 个快照，再存走完的整段视频 X，离线存到硬盘。</li>
+  <li><strong>初始化学生</strong>：把同一份双向 Wan 权重装进块因果架构。</li>
+  <li><strong>训学生（ODE 回归）</strong>：每个训练样本里，每个 chunk 各自挑一行快照，拼成输入 N，一次前向。每个 chunk 的预测对准 X，用均方误差，全参数更新。</li>
+  <li><strong>得到 ode_init</strong>，交给 D 阶段。</li>
+</ol>
+
+<h3 id="bc-fig">3.3 一步一步看：学生的输入是怎么拼出来的</h3>
+<p>先说最容易糊的地方：教师是一整段视频一起去噪的，所以在它去噪过程的任何一个时刻，所有 chunk 的噪声等级都一样。我们存了几个时刻的快照，这就得到一张表，每一行是一个时刻的整段视频，每一列是一个 chunk。训学生时，对每个 chunk 各自在表里挑一行，把这一列这一行的小块取出来，再拼起来。拼出来的输入里，各 chunk 的噪声等级就不一样了。图分四步，点“下一步”。</p>
+<figure class="fig" data-fig="ode"><div class="fig-body"></div><figcaption>原来的 B+C：ODE 蒸馏。点任意一个 chunk 看它读什么。</figcaption></figure>
+<p>再按顺序讲一遍，用图里默认的挑法：C1 挑了 t3 那行，C2 挑了 t1，C3 挑了 t4，C4 挑了 t2，C5 挑了 t1。</p>
+<ul>
+  <li><strong>挑行。</strong>每一列各自挑一行，蓝框就是挑中的。C1 取的是 t3 时刻的 C1，C2 取的是 t1 时刻的 C2，其他同理。</li>
+  <li><strong>拼输入 N。</strong>把 5 个挑中的小块按顺序拼起来，就是 N₁ 到 N₅。拼的时候<strong>不加任何新噪声</strong>，小块本来就带着那个时刻的噪声。N₁ 是 t3，N₂ 是 t1，N₃ 是 t4，N₄ 是 t2，N₅ 是 t1。X 是干净的，只当目标，不进输入。</li>
+  <li><strong>一次前向。</strong>这 5 块一起送进学生，用块因果注意力。以 C3 为例：它读 N₁、N₂ 和它自己 N₃，读不到 N₄、N₅。注意它读到的 N₁、N₂ 是带噪的。</li>
+  <li><strong>预测。</strong>学生对每个 chunk 都给出一个干净结果 P₁ 到 P₅，也是一次前向全部出来。</li>
+  <li><strong>对目标。</strong>目标就是表里最下面那一行 X。每个 chunk 的 Pₖ 和 Xₖ 逐个做均方误差再平均。</li>
+</ul>
+<p>两点容易糊：第一，不同 chunk 的噪声等级能不一样，是因为我们从不同时刻的快照里挑，并不是教师某个时刻真的各 chunk 不同。第二，所有 chunk 的目标来自同一条轨迹的最后一行，不管它挑的是哪个等级。同一个 chunk 在不同次训练里，输入可能是 t4，也可能是 t1，目标始终是它的 Xₖ。</p>
+
+<h3 id="bc-qa">3.4 几个常问的问题</h3>
+<div class="qa">
+  <p class="q">学生读到的前面的 chunk 是带噪的？这不像普通的自回归。</p>
+  <p>对，这里确实是奇怪的。普通的自回归是干净的历史加带噪的当前，推理时就是这样。这个初始化里，输入的所有 chunk 都是带噪的，每个 chunk 读的前面的 chunk 也是带噪的，而且各自等级不同。要分清输入和输出：输入是带噪的，输出不是，学生对每个 chunk 输出的是干净结果。</p>
+  <p>各 chunk 独立抽噪声等级，是 DF 的做法，一次前向就能覆盖很多种噪声等级的组合。</p>
+</div>
+<div class="qa">
+  <p class="q">这是蒸馏吗？教师在训练吗？</p>
+  <p>是蒸馏：教师用很多步才走完的路，让学生一步跳完。教师不训练，造数据时它只做推理。整个流程是两个阶段：先用教师推理离线造好数据，再用这批数据训学生。</p>
+</div>
+<div class="qa">
+  <p class="q">训练是 LoRA 还是全参数？</p>
+  <p>全参数。B+C、D 的生成器都是全参数训练，D 里假分数网络也是全参数，只有教师冻结。</p>
+</div>
+
+<h3 id="bc-problem">3.5 这一步有两个问题</h3>
+<p>这是 Causal Forcing 要修的地方，下一节细讲：</p>
+<ul>
+  <li><strong>教师看过未来，学生看不到。</strong>双向教师去噪一个 chunk 时参考了后面的 chunk，学生只能看到前面，同一个输入会对应多个目标，学到的是平均，画面模糊、动态变弱。</li>
+  <li><strong>学生看到的上下文和推理时不一致。</strong>训练时前面的 chunk 是带噪的、等级各异，推理时前面的 chunk 已经输出，是干净的。</li>
+</ul>
+
+<h2 id="cf-bc"><span class="num">04 · B/C 阶段 · Causal Forcing</span>把 B 和 C 拆开，教师和学生都换成合理的自回归</h2>
+<div class="crux">
+  <span class="lab">核心难点</span>
+  <p>ODE 蒸馏要学得准，需要输入决定目标：同一个输入只能对应一个目标。教师的去噪是个 ODE，轨迹不会交叉，所以一个带噪的整段视频只会走到唯一一个干净视频。</p>
+  <p>双向教师蒸馏成双向学生没有问题，因为学生能看到整段视频。但自回归学生是一个 chunk 一个 chunk 地看，它的输入只是“这个带噪 chunk 加上前缀”。双向教师去噪这个 chunk 时还参考了后面的 chunk，所以同一个输入会对应不同的目标，学生只能学平均，画面模糊、动态变弱。论文把这叫违反帧级单射性。</p>
+  <span class="lab">思路</span>
+  <p>让教师也是自回归的：去噪第 i 个 chunk 时只看它和前面干净的内容。这样输入唯一决定目标，学生就能精确学到。但这需要先有一个自回归教师，所以把原来合在一起的 B 和 C 拆开：先用 TF 训一个自回归模型（B），再拿它当教师做因果 ODE（C）。学生读的上下文也一起改成干净的前缀，和推理一致。</p>
+</div>
+
+<h3 id="cf-inj">4.1 帧级单射性：论文那张图怎么读</h3>
+<p>先认符号。论文里的图把“带噪状态走到干净结果”画成三个小图：</p>
+<ul>
+  <li>蓝色曲线是噪声等级 t 下所有可能的带噪样本的分布，金色是干净数据的分布。黑色箭头是<strong>教师</strong>的 ODE 去噪路径，从蓝色里的一个点走到金色里的一个点。</li>
+  <li>x 和 y 是两个不同的样本，也就是两段不同的带噪视频。上标 1:N 是整段视频的所有帧，上标 i 是第 i 帧，下标 t 是噪声等级。所以 xₜ^{1:N} 是第一段带噪视频，yₜ^{1:N} 是第二段，xₜⁱ 是第一段的第 i 帧。</li>
+  <li>φ 是教师的去噪映射。φ^Bi 是双向教师：整段带噪视频进去，整段干净视频出来；φ^AR 是自回归教师：第 i 帧（外加前缀）进去，第 i 帧的干净结果出来；φ^Bi(…)ⁱ 是双向教师输出的整段视频里的第 i 帧。前缀在图里省略了，默认是同一个干净前缀。</li>
+</ul>
+<p>三个小图问的都是同一件事：学生看到的输入，能不能唯一决定目标。</p>
+<ul>
+  <li><strong>(a) 双向教师，双向学生</strong>：学生输入整段带噪视频，不同的输入走到不同的终点，路径不交叉，一一对应。</li>
+  <li><strong>(b) 自回归教师，自回归学生（Causal Forcing）</strong>：输入是第 i 帧（外加前缀），不同的输入走到不同的终点，一一对应。</li>
+  <li><strong>(c) 双向教师，自回归学生（Self Forcing）</strong>：图里写的 xₜⁱ = yₜⁱ，意思是两段不同的带噪视频，第 i 帧恰好一样，别的帧不同。双向教师参考了别的帧，所以这同一个第 i 帧走到了两个不同的干净帧，一对多。学生只看到第 i 帧，只能学两个终点的平均，所以图下面的结果是模糊的。</li>
+</ul>
+<p>图里画的是教师，学生没有画出来，它是学习“起点到终点”这些配对的一方。下面是我画的一个最小的例子，对应论文的 (c) 和 (b)：两个样本的 C1、C2 一样，只有 C3 不同。点上面的按钮切换教师类型。</p>
+<figure class="fig" data-fig="inj"><div class="fig-body"></div><figcaption>帧级单射性示意。双向教师下，一个输入对应两个不同的目标；自回归教师下，一个输入只对应一个目标。</figcaption></figure>
+<p>按图的顺序读：</p>
+<ol>
+  <li>样本 A 和 B 是两段不同的带噪视频，对应论文里的 x 和 y。</li>
+  <li>它们的 C1、C2 完全一样，只有 C3 不同，对应 xₜⁱ = yₜⁱ。</li>
+  <li>教师去噪 C2。双向教师会参考 C3，C3 不同，C2 的干净结果就不同：A 偏蓝，B 偏橙。</li>
+  <li>虚线框是学生能看到的部分：C1 和 C2。对学生来说，两个样本是同一个输入。</li>
+  <li>同一个输入，两个不同的目标，学生只能学平均，所以模糊。</li>
+</ol>
+<p>切到自回归教师：它去噪 C2 时不看 C3，两个样本的 C2 结果相同，一个输入对应一个目标。这个例子是理想化的，真实噪声是连续的，不会恰好相同，但道理一样：目标有一部分由学生看不到的东西决定，学生就只能学平均。</p>
+
+<h3 id="cf-tf">4.2 TF 和 DF，以及它们在哪一层</h3>
+<p>TF 和 DF 是训练自回归模型时，用数据里的视频怎么构造上下文的两种做法：</p>
+<ul>
+  <li><strong>TF</strong>：预测当前 chunk 时，上下文是数据里<strong>干净</strong>的前面内容，所有 chunk 可以在一次前向里并行训。</li>
+  <li><strong>DF</strong>：上下文是<strong>带噪</strong>的，每个 chunk 独立抽噪声等级。</li>
+</ul>
+<p>它们属于 B 这一类：怎么用数据把模型训成自回归的。Self Forcing 不是这一类，它是 D：在自己滚出的历史上训练。三者不在同一层。A/B/C/D 这个分层不是这些论文自己的说法，Causal Forcing 做的事就是把过去合在一起的 B 和 C 拆开。</p>
+<p>B 用 TF，因为它的上下文是干净的，和推理时“前面已经干净”一致。论文在理论和实验上都认为 TF 比 DF 好，理论部分我没有读到细节，不展开。它的消融里 TF 的 VisionReward 更高，DF 的动态程度数字更高，作者把后者归因于画面坍缩，这是他们的解释。</p>
+<p>要注意 TF 里的“teacher”和蒸馏里的教师不是一回事：TF 里和模型预测去比较的是数据里干净的视频，没有教师模型。</p>
+
+<h3 id="cf-steps">4.3 操作顺序</h3>
+<p>先记 ckpt 怎么传：双向 Wan 预训练权重 → B 得到自回归模型 → C 得到 causal_ode → D。</p>
+<h4>B：训一个自回归模型</h4>
+<p>起点 ckpt：双向 Wan 的预训练权重。需要的数据：一批干净视频（过 VAE 的潜变量）和对应的 prompt。这些视频是双向 Wan 根据 prompt 合成的，不是外部拍的真实视频。</p>
+<ol>
+  <li>准备视频数据。</li>
+  <li>初始化：把双向 Wan 权重装进块因果架构。</li>
+  <li>每个训练样本：取一个视频 G，给每个 chunk 各自抽一个噪声等级、加噪得到 N。把 G 和 N 拼成一个序列，用 TF 的掩码（N 的每个 chunk 读它前面的干净 G 和自己），一次前向。</li>
+  <li>损失：预测对准由 G 算出的流匹配目标，没有教师。全参数更新。</li>
+  <li>得到自回归模型的 ckpt，下一步它既是教师，也是学生的起点。</li>
+</ol>
+<p>B 不是蒸馏，就是普通的训练，本质是 SFT。它需要视频，是因为没有教师，监督信号来自视频本身。</p>
+<h4>C：因果 ODE，分造数据和回归</h4>
+<ol>
+  <li><strong>教师</strong>是 B 的 ckpt，冻结，只推理。数据是同一批视频 G 和 prompt。</li>
+  <li><strong>造数据</strong>：对每个视频，把 G 当干净前缀，教师从纯噪声出发，所有 chunk 一起去噪，带 CFG，走几十步。存 4 个快照，再存教师走完的 X，离线存盘。X 不是原视频，是教师在这个前缀下生成的样本。</li>
+  <li><strong>初始化学生</strong>：B 的 ckpt（教师和学生起点相同）。</li>
+  <li><strong>训学生</strong>：每个样本随机挑一行快照（所有 chunk 同一个噪声等级），配上干净前缀 G，一次前向，用同样的 TF 掩码。预测对准 X，用均方误差，全参数更新。</li>
+  <li>得到 causal_ode 的 ckpt，交给 D。D 的学生就是 C 结束时的这个模型。</li>
+</ol>
+
+<h3 id="cf-fig1">4.4 三步总览图</h3>
+<p>先说这一步的关键：B 里没有轨迹，是对数据加噪训练；C 里教师以数据里的干净视频为前缀，从纯噪声出发走一遍轨迹，学生再回归这条轨迹的终点。三步合起来，教师和学生都是“干净历史加带噪当前”。图里点“下一步”。</p>
+<figure class="fig" data-fig="cfbc"><div class="fig-body"></div><figcaption>Causal Forcing 的 B 和 C 三步。点任意 chunk 看它读什么；第 3 步拖滑块换快照。</figcaption></figure>
+<p>再讲一遍：</p>
+<ul>
+  <li><strong>第 1 步（B）</strong>：把数据里的干净视频 G 的每个 chunk 各自加噪得到 N，G 和 N 一起一次前向。N 的每个 chunk 读它前面干净的 G 和自己，读不到对应的 G（读了会泄露答案）。训练目标是让预测朝向 G，是普通的扩散训练。</li>
+  <li><strong>第 2 步（C 的前半）</strong>：用第 1 步的模型当教师，以干净前缀为条件，从纯噪声一路去噪，存快照和 X。</li>
+  <li><strong>第 3 步（C 的后半）</strong>：学生拿某一行快照（所有 chunk 同一等级）加干净前缀，一次前向，预测对准 X。</li>
+</ul>
+
+<h3 id="cf-fig2">4.5 C 的造数据，单独看一遍</h3>
+<p>这一步最容易糊，单独放大。教师在这里只做推理，不训练。每一步里，所有 chunk 一起被更新，是因为每个 chunk 读的是前面干净的 G，不是别的 chunk 当前的带噪状态，所以各个 chunk 的去噪互不依赖，一起算和一个个算结果一样。拖滑块看当前状态怎么变、什么时候存盘。</p>
+<figure class="fig" data-fig="cfdata"><div class="fig-body"></div><figcaption>C 阶段的造数据。教师只做推理；G 不变，N 从纯噪声一步步变干净；存 4 张快照和走完的 X。</figcaption></figure>
+<p>再讲一遍：最上面一行 G 是干净前缀，整个过程里不变，也不加噪；第二行 N 是教师当前的去噪状态。每一步把当前 N 和 G 一起送进教师做一次前向（实际上跑两次，带 prompt 和不带，按比例合成一个 velocity，这叫 CFG），沿 velocity 走一小步。第 0、12、24、36 步各存一张快照，走完再存 X。4 张快照是“题目”，X 是“答案”，存到硬盘，后面训学生时用。</p>
+
+<h3 id="cf-qa">4.6 几个常问的问题</h3>
+<div class="qa">
+  <p class="q">C 为什么需要视频？教师不是可以从纯噪声出发推理吗？</p>
+  <p>教师确实是从纯噪声出发推理。视频在这里只当干净前缀：自回归教师去噪第 i 个 chunk 要有干净的前面内容当上下文。教师当然也可以一个 chunk 一个 chunk 地先自己生成前缀，但那样 chunk 之间有先后顺序，只能串行。用数据里现成的视频当前缀，所有 chunk 可以在一次前向里并行去噪。</p>
+</div>
+<div class="qa">
+  <p class="q">B 里每个 chunk 还是各抽各的噪声等级，这有区别吗？</p>
+  <p>区别不大。B 里带噪的 chunk 之间互相读不到，每个 chunk 只读干净前缀和它自己，所以一个 chunk 的预测只取决于它自己的噪声等级，别的 chunk 抽什么等级跟它没关系。各抽各的，等于一次前向里放了好几个互相独立的训练样本。原来的做法里不一样：带噪的 chunk 要读别的带噪 chunk，各自的等级会互相影响。C 里用同一个等级，同理没有影响。</p>
+</div>
+<div class="qa">
+  <p class="q">原来的做法和现在，三处区别是什么？</p>
+  <ol>
+    <li><strong>教师</strong>：双向换成自回归，输入唯一决定目标，学生不再学平均。</li>
+    <li><strong>学生的上下文</strong>：带噪、等级各异的前面 chunk，换成干净的前缀，所有 chunk 同一等级，和推理时一致。</li>
+    <li><strong>阶段数</strong>：一步拆成两步，先 B 再 C。</li>
+  </ol>
+  <p>B/C 之后的 D 三篇完全相同，所以 Causal Forcing 相对 Self Forcing 的差别就在这三处。</p>
+</div>
+
+<h3 id="cf-inf">4.7 推理、D 阶段和长视频</h3>
+<p>推理和 Self Forcing 完全一样：4 步，一个 chunk 一个 chunk，每个 chunk 之后刷新 KV，读之前所有 chunk，见第 05 节。D 阶段也和 Self Forcing 完全一样，只是学生从 C 的权重出发，教师是更大的双向模型（论文叫非对称 DMD）。</p>
+<div class="qa">
+  <p class="q">Causal Forcing 推理是不限 KV？不是 rolling window 吗？</p>
+  <p>分两种。论文里评测的那个 5 秒模型，推理是不限 KV，默认全读。但仓库里另有一个分钟级长视频版本，它直接用 Rolling Forcing 的代码，只把初始化换成 Causal Forcing 的。所以长视频版本的推理是滚动窗口，就是第 06 节那一套。这也说明 Causal Forcing 动的是 B、C，D 阶段可以换成别的。</p>
+</div>
+
+<details class="ev"><summary>口径与证据：评测怎么做的、数字是多少（抓取文本，引用前请回原文核对）</summary>
+  <h4>评测口径</h4>
+  <ul>
+    <li>基座 Wan2.1-T2V-1.3B，视频 81 帧、832×480（5 秒）。评测用一个 100 条、偏动态的自建 prompt 集。<span class="tg p">论文 §4.1、附录 C</span></li>
+    <li>指标：VBench（总分、质量分、语义分）、VisionReward、VisionReward 的指令遵循、动态程度（Dynamic Degree）；还有一个 10 人的用户研究（10 条 prompt），和在一块 H100 上测的吞吐与延迟。</li>
+    <li>基线：LTX-1.9B、Wan2.1-1.3B、NOVA、Pyramid Flow、SkyReels-V2、MAGI-1、CausVid、Self Forcing。</li>
+    <li>训练预算：B 的 2K 步加 C 的 1K 步，对应 Self Forcing 的 3K 步 ODE 初始化；D 的 DMD 是 750 步；真实分数用 Wan2.1-14B，假分数用 1.3B。数据是约 3K 条双向 Wan 合成的视频。</li>
+  </ul>
+  <h4>主结果（Table 1）</h4>
+  <p>Causal Forcing：VBench 总分 84.04，质量分 84.59，语义分 81.84，动态程度 68，VisionReward 6.326，指令遵循 56，吞吐 17.0 FPS、延迟 0.69 秒，与 CausVid、Self Forcing 相同。摘要里的相对提升：动态程度比 Self Forcing 高 19.3%，VisionReward 高 8.7%，指令遵循高 16.7%。</p>
+  <h4>消融（Table 2）</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>设置</th><th class="n">总分</th><th class="n">质量</th><th class="n">语义</th><th class="n">动态</th><th class="n">VisionReward</th><th class="n">指令遵循</th></tr></thead>
+    <tbody>
+      <tr><td>DF</td><td class="n">81.76</td><td class="n">82.52</td><td class="n">78.71</td><td class="n">60</td><td class="n">1.583</td><td class="n">30</td></tr>
+      <tr><td>TF</td><td class="n">82.12</td><td class="n">82.73</td><td class="n">79.67</td><td class="n">50</td><td class="n">3.343</td><td class="n">32</td></tr>
+      <tr><td>块级：Self Forcing 的 ODE + DMD</td><td class="n">82.00</td><td class="n">82.18</td><td class="n">81.29</td><td class="n">24</td><td class="n">3.330</td><td class="n">38</td></tr>
+      <tr><td><strong>块级：因果 ODE + DMD</strong></td><td class="n">84.04</td><td class="n">84.59</td><td class="n">81.84</td><td class="n">68</td><td class="n">6.326</td><td class="n">56</td></tr>
+      <tr><td>帧级：Self Forcing 的 ODE + DMD</td><td class="n">81.83</td><td class="n">82.66</td><td class="n">78.50</td><td class="n">2</td><td class="n">1.951</td><td class="n">4*</td></tr>
+      <tr><td>帧级：因果 ODE + DMD</td><td class="n">83.75</td><td class="n">84.35</td><td class="n">81.37</td><td class="n">64</td><td class="n">6.204</td><td class="n">42</td></tr>
+    </tbody></table></div>
+  <p class="small">* 抓取时该格是 4，可能有误。</p>
+  <p>最关键的对比是“块级 Self Forcing 的 ODE + DMD”对“块级因果 ODE + DMD”：动态程度 24 到 68，VisionReward 3.330 到 6.326；VBench 总分变化相对小（82.00 到 84.04）。提升主要体现在动态和 VisionReward 上。</p>
+  <h4>没读到或有出入的地方</h4>
+  <p>B 的 TF 损失的精确公式、存下来的轨迹的噪声等级集合，我读到的文本里没有。论文正文说因果一致性蒸馏（CD）对指令遵循提升了 60，但 Table 2 里是 18 对 42，对不上，要回原文核对。</p>
+</details>
+
+<h3 id="cf-lim">4.8 局限与可关注点</h3>
+<ul>
+  <li>论文自己提到的：CD 的实现是朴素的 LCM，不如分数蒸馏；x₀ 参数化不一定最优；近期一些 TF 的变体在 5 秒上没有显著提升；多步自回归初始化在少步采样下不能完全补上差距。训练数据是内部合成的，评测 prompt 集是自建的。</li>
+  <li><strong>B/C 与 D 的上下文不一致</strong>：B、C 的上下文是数据里干净的视频，D 才是自己生成的历史，所以 exposure bias 仍要靠 D 解决，Causal Forcing 本身没有处理它。<span class="tg i">推断</span></li>
+  <li>评测只有 5 秒，长视频要靠别的方法，仓库里是换到 Rolling Forcing 上。</li>
+  <li>仓库 README 说 Self Gradient Forcing 等工作基于 Causal Forcing 的初始化，这对后面读 SGF 有用，到时核对。README 里还有 Causal Forcing++，用因果一致性蒸馏代替 ODE，本笔记没有展开。</li>
+</ul>
+
+<h2 id="sf"><span class="num">05 · D 阶段</span>Self Forcing：自己滚出历史再训练</h2>
+<div class="crux">
+  <span class="lab">核心难点</span>
+  <p>自回归模型训练时，上下文是数据里的视频；推理时，上下文只能是自己生成的、带着小错误的结果。训练和推理对不上，错误就越滚越大，这叫 exposure bias。</p>
+  <p>想在训练里直接模拟推理，让模型自己一个 chunk 一个 chunk 滚出来，难处在于链条很长：每个 chunk 要多步去噪，还有很多个 chunk，每一步都留梯度，显存根本扛不住。</p>
+  <span class="lab">思路</span>
+  <p>三件事一起做：用<strong>少步模型</strong>把每个 chunk 的步数压到几步；rollout 时用 <strong>KV 缓存</strong>，把历史存下来；<strong>只在每个 chunk 的随机一步开梯度</strong>，其余步都不留图，梯度也不穿过 KV。监督不逐帧算，而是对滚出来的整段视频做 DMD。</p>
+</div>
+
+<h3 id="sf-start">5.1 起点和需要的数据</h3>
+<p>D 阶段从第 03 节得到的 B+C 的结果出发，也就是 <code>ode_init</code>，只需要 prompt，不需要任何视频。Self Forcing 自己只动这一个阶段。</p>
+
+<h3 id="sf-infer">5.2 推理：一个 chunk 一个 chunk 地走</h3>
+<p>先把流程说清楚，再看图。一个 chunk 要连续做 4 次前向。每次先预测干净结果，再重新加噪、推到下一个噪声等级；第 4 次预测出来的干净结果就是这个 chunk 的输出。输出之后要做一次 KV 刷新（见 2.4），下一个 chunk 才能开始。每个 chunk 能读到之前所有 chunk 的 KV。</p>
+<figure class="fig" data-fig="sf" data-mode="infer"><div class="fig-body" data-mode="infer"></div><figcaption>Self Forcing 的标准推理图。滑块往右拖，就是打开可选的滚动 KV 缓存，只保留最近几个 chunk。这张图同时也是 Causal Forcing 的推理图。</figcaption></figure>
+<p>再把图讲一遍：</p>
+<ul>
+  <li><strong>每次只有一个 chunk 在算</strong>，所有前向从上到下严格串行，没有预热。首块只要 4 次前向，代码里还有专门的首块计时器（在 Causal Forcing 的仓库里）。</li>
+  <li><strong>读的历史</strong>：默认缓存足够大，视频在训练长度之内时，每个 chunk 读之前所有 chunk 的 KV，没有 sink，也不驱逐。</li>
+  <li><strong>滚动 KV 缓存</strong>是论文摘要里提到的，用来往后外推：缓存满了就丢最旧的。代码里对应一个可选项，默认关闭。</li>
+  <li>我把它的推理循环和 Causal Forcing 仓库里的那段逐行对比过：算法完全一样，区别只有一个计时器和一个可选的“首块单独步数表”。</li>
+</ul>
+
+<h3 id="sf-train">5.3 训练：自己滚出历史，只在一步开梯度</h3>
+<p>训练要模拟上面的推理，但不能每一步都留图。办法是：每个视频先抽一个“选中的那一步”，每个 chunk 先用不带梯度的前向走到这一步，在这一步<strong>开梯度</strong>，取这一步的预测作为这个 chunk 的输出。后面的去噪步不再跑。然后同样做一次 KV 刷新，给下一个 chunk 当历史。</p>
+<figure class="fig" data-fig="sf" data-mode="train"><div class="fig-body" data-mode="train"></div><figcaption>Self Forcing 的训练图。拖动滑块改选中的那一步；底下“预测”一行是各 chunk 的输出来自哪个噪声等级，最后拼成整段视频交给 DMD。</figcaption></figure>
+<p>再把图讲一遍：</p>
+<ul>
+  <li><strong>蓝框是唯一带梯度的前向</strong>，每个 chunk 一次。蓝框前面的灰色前向只是把输入推到这一步，不留图。</li>
+  <li><strong>输出是选中那一步的预测，不一定是走完所有步的结果。</strong>选 t3 时，后面 t2、t1 两步根本不跑。这个输出再被刷新成 KV，所以历史有时是“没去干净”的预测。</li>
+  <li><strong>梯度往哪走</strong>：只在蓝框那一次前向内部流动。蓝框前面的输入、历史的 KV 都是常数，KV 刷新也不带梯度，所以梯度不会穿过 chunk 与 chunk 之间。</li>
+  <li><strong>所有 chunk 用同一个选中的那一步</strong>（图中“预测”那一行颜色一样）。这一点和 Rolling Forcing 的阶梯形不同，见第 06 节。</li>
+  <li><strong>为什么随机选一步</strong>：每步都留图显存扛不住；随机选，在多次迭代里等价地覆盖所有噪声等级，每个等级都轮流得到监督。</li>
+  <li><strong>读的历史</strong>：训练时同样读之前所有 chunk 的 KV，和推理一致。</li>
+</ul>
+
+<h3 id="sf-sup">5.4 监督</h3>
+<p>DMD，见 2.7。教师是一个更大的双向模型，学生是因果的，Causal Forcing 的论文把这叫非对称 DMD。视频长度每次迭代在一个范围内随机抽，损失只算最后一段，长度和教师能处理的对齐。</p>
+
+<h3 id="sf-lim">5.5 局限与可关注点</h3>
+<ul>
+  <li><strong>计算图（方向①）</strong>：每个 chunk 都要等上一个 chunk 的 KV 刷新，全部串行；首块延迟小，但稳态吞吐被串行限制。Rolling Forcing 就是从这里下手的。</li>
+  <li><strong>memory（方向③）</strong>：默认全读历史，超出训练长度只能靠可选的滚动缓存，而且是先进先出，没有 sink。仓库作者自己也说，直接拿 5 秒训练的模型去做长视频对比并不公平。</li>
+  <li><strong>监督（方向②）</strong>：只有 DMD，上限被教师能处理的长度限制。</li>
+  <li>它的初始化被 Causal Forcing 指出有问题（单射性），这是 B/C 阶段的毛病，和 D 阶段无关。</li>
+</ul>
+<details class="ev"><summary>口径与证据：别的论文转引的 Self Forcing 数字</summary>
+  <p>我没有读 Self Forcing 自己论文里的实验，下面是别的论文里和它的对比数字，口径以那几篇为准。</p>
+  <ul>
+    <li>Rolling Forcing 论文 Table 1（30 秒视频）：Self Forcing 15.38 FPS，延迟 0.78 秒，ΔQuality Drift 1.66。<span class="tg p">论文（Rolling Forcing）</span></li>
+    <li>Causal Forcing 论文 Table 1（5 秒视频，一块 H100）：Self Forcing 与 CausVid 的吞吐和延迟与 Causal Forcing 相同，约 17 FPS、0.69 秒。<span class="tg p">论文（Causal Forcing）</span></li>
+    <li>两篇的 FPS 不同，是因为视频长度、评测设置和机器不同，不能直接比较。</li>
+  </ul>
+</details>
+
+<h2 id="rf"><span class="num">06 · D 阶段</span>Rolling Forcing：滚动窗口并行去噪</h2>
+<div class="crux">
+  <span class="lab">核心难点</span>
+  <p>逐块去噪里，一个 chunk 一旦输出就定稿，后面的 chunk 把它当成干净历史接着生成。它里面的小错误会被一路继承、放大，视频越长越漂。</p>
+  <p>想让一个 chunk 在定稿之前还能被修正，就得让它和后面的内容一起去噪。但这打破了“先完成一个、再做下一个”的因果结构，带来三个新问题：推理怎么组织；窗口内全双向和之前训过的块因果不一样，怎么训；窗口变大之后训练变贵、历史怎么办。</p>
+  <span class="lab">思路</span>
+  <p>窗口里放 T 个 chunk（T 等于去噪步数），噪声从老到新递增，每次前向<strong>所有 chunk 同时降一级</strong>，最老的那个干净了就输出，窗口末尾补一块纯噪声。训练时只在<strong>间隔的窗口</strong>开梯度，这些窗口互不重叠、合起来恰好盖住每个 chunk 一次，再混入 Self Forcing 当正则。另外加 <strong>attention sink</strong> 给长视频一个固定的外观锚点。</p>
+</div>
+
+<h3 id="rf-start">6.1 起点和位置</h3>
+<p>只动 D 阶段，改的是去噪的计算图（方向①）和 memory（方向③）。它从第 03 节 B+C 的结果出发，和 Self Forcing 是同一份权重，监督仍是 DMD，也只需要 prompt。</p>
+
+<h3 id="rf-infer">6.2 推理：窗口并行去噪</h3>
+<p>先用最小的例子走一遍。用 4 个等级表示噪声，4 是纯噪声，1 是快去完了，chunk 记为 A、B、C、D、E。下面写的是每次传播的<strong>输入</strong>：</p>
+<ol>
+  <li>第 1 次：窗口里只有 A4。A 降一级。</li>
+  <li>第 2 次：A3，B4（B 是新补进来的纯噪声）。两个一起降一级。</li>
+  <li>第 3 次：A2，B3，C4。</li>
+  <li>第 4 次：A1，B2，C3，D4。这次传播之后 A 降到干净，输出。</li>
+  <li>第 5 次：B1，C2，D3，E4。这次 B 输出。之后每次传播都是这个形状：输出一个，补进一个。</li>
+</ol>
+<p>前 3 次是预热，窗口还没长满，之后每次传播稳定输出一个 chunk。每次传播里，窗口所有 chunk 一次送进模型（并行），窗口内部全双向，另外还能读缓存里已经输出的干净历史（sink 和最近的干净块）。每个 chunk 给出干净预测后，最老的那个直接输出，其余的重新加噪到各自的下一级。</p>
+<figure class="fig" data-fig="rf" data-mode="infer"><div class="fig-body" data-mode="infer"></div><figcaption>Rolling Forcing 的推理图。F 是窗口前向，薄绿行是 KV 刷新。点任意一行，或用“下一步”按执行顺序走。</figcaption></figure>
+<p>再把图讲一遍：</p>
+<ul>
+  <li><strong>窗口</strong>就是一次前向里同时送进模型、正在去噪的那几个 chunk。看图里 F5：C2 到 C5 一起降一级，C2 到 t1 的下一步就是输出。</li>
+  <li><strong>每次传播后面紧跟一行绿色的 KV 刷新</strong>：刚输出的 chunk 要再单独过一遍变成 KV，下一个窗口才能读到它，这一刻只有它自己在算。</li>
+  <li><strong>每行读的历史</strong>：通常是 sink（C1）加最近的一个干净块，窗口自己占了位置。视频快结束时窗口缩短，能读的历史变长。<span class="tg i">推断</span></li>
+  <li><strong>同时去噪的 chunk 数是变的</strong>：开头 1、2、3、4 个，中间 4 个，结尾又递减。模型没把数量写死，窗口里放几个只是 query 变长，每帧各带自己的时间步。</li>
+  <li><strong>首块延迟</strong>：第一个干净块要等预热的几次传播，query 一次比一次长。如果耗时和 query 长度成正比，约是稳态一个 chunk 的几倍。论文没报首块延迟，这只是粗估，需要用管线里的逐窗口计时去测。<span class="tg i">推断</span></li>
+</ul>
+
+<div class="qa">
+  <p class="q">每次降一级的“噪声等级”里有没有 0？</p>
+  <p>没有。窗口传播的输入只有那几个等级，“降到干净”指的是输出是干净预测，不是哪个块以 0 为输入。0 只出现在 KV 刷新那一次前向里。</p>
+</div>
+<div class="qa">
+  <p class="q">B/C 阶段训出来的模型，也能一次处理多个 chunk 吗？</p>
+  <p>机制上可以：注意力是 chunk 级的（一个 chunk 内的帧一起处理），query 变长就是多几个 chunk，每帧带自己的时间步。但 C 阶段训练用的是块因果掩码，一次只处理一个 chunk，从没见过“窗口内多个不同噪声等级的 chunk 互相双向看”。我推断这种能力是 D 阶段（Rolling Forcing 自己的训练）教出来的，论文摘要也说它放松了相邻帧之间严格的因果性。<span class="tg i">推断</span></p>
+</div>
+
+<h3 id="rf-sink">6.3 attention sink 与 RoPE</h3>
+<p>sink 就是把视频最开头那个 chunk 的 KV 永远留在缓存里，不随视频变长被丢掉。它给整段视频一个固定的外观参照，防止越生成越偏。去掉它，漂移明显变大。</p>
+<p>位置上有个细节：sink 的 key 在缓存里是不带 RoPE 的，读的时候再按“紧挨在最近那个干净块之前”的位置加上 RoPE。这样不管视频已经生成了多久，sink 和当前窗口的相对距离始终一样，不会出现训练时没见过的超长距离。训练和推理用的是同一套缓存逻辑，所以训练时模型就是在这个设定下学的。</p>
+<p>代码里注意力的总长度是固定的：sink 一个 chunk，加最近的一个干净块，再加窗口。官方配置下，这个总长正好是 21 个 latent 帧，也就是教师训练时看到的长度（论文写的教师是 21 帧的双向模型），学生看到的上下文和教师一样长。论文附录 D 比较了几种放 RoPE 位置的方式，我没读到具体结论。</p>
+
+<h3 id="rf-train">6.4 训练：只在间隔的窗口开梯度</h3>
+<p>训练要解决三件事。第一，推理时历史是模型自己生成的，所以训练也要让模型自己一窗口一窗口地滚出整段视频，训练推理才对得上。第二，滚的过程里窗口很多，每个窗口前向都留梯度，显存和计算都扛不住。第三，DMD 比较的是整段视频的分布，需要一整段预测出来的干净视频才能算。</p>
+<p>做法是：整段视频都滚一遍，但只在其中一部分窗口上开梯度；这些窗口互不重叠，合起来恰好把每个 chunk 盖住一次；把它们的输出拼成预测视频，再交给 DMD。切到训练模式，拖滑块看开梯度的是哪些窗口。</p>
+<figure class="fig" data-fig="rf" data-mode="train"><div class="fig-body" data-mode="train"></div><figcaption>Rolling Forcing 的训练图。蓝框行有梯度，其余窗口也跑但不带梯度；底下“预测”一行是每个 chunk 从哪个噪声等级被监督。</figcaption></figure>
+<p>再把图讲一遍，一步一步：</p>
+<ol>
+  <li><strong>整段视频自己滚一遍</strong>：从纯噪声出发，按推理一样的方式一窗口一窗口往前走，包括 KV 刷新。历史是模型自己生成的。</li>
+  <li><strong>每个视频抽一个 e</strong>，窗口序号除以 T 余 e 的那些窗口开梯度（蓝框），其余窗口不带梯度。拖动滑块可以看到：不管 e 是几，蓝框行都互不重叠，合起来恰好盖住每个 chunk 一次，开头的预热窗口也包括在内。</li>
+  <li><strong>每个 chunk 只被监督一次，位置不同噪声等级不同</strong>：看“预测”那一行，各 chunk 来自的等级错开，呈阶梯形（Self Forcing 是所有 chunk 同一等级）。</li>
+  <li><strong>拼成预测视频，交给 DMD</strong>：蓝框行里每一帧的干净预测拼起来，按 2.7 的方式打分。</li>
+  <li><strong>梯度往哪走</strong>：只在一次窗口前向内部流动。横向：同一窗口内的各帧互相看，有梯度；纵向（同一个 chunk 在不同去噪步之间）：没有，每个窗口的输入是上一步截断后的常数；进 KV：没有，缓存全在不带梯度时算的。</li>
+</ol>
+<p>对一个蓝框窗口来说，计算图就是下面这一条，不多不少：</p>
+<pre><code>上一次留下来的带噪窗口（常数） + 缓存的 KV（常数）
+        → 第 1 层 → 第 2 层 → … → 第 L 层 → 输出头 → velocity → x̂₀
+        ← DMD 的梯度从 x̂₀ 回来，只经过这一条</code></pre>
+<p>缓存的 KV 是常数，但窗口自己的 K、V 不是：窗口里的帧在每一层都互相做注意力，这些 K、V 由参数算出，所以梯度能在窗口内的各帧、各层之间流动。同一组参数在每个窗口、每一层里被反复使用，反传时同一个参数在多个位置的贡献会加起来，数学上就是链式法则里的求和。</p>
+
+<div class="qa">
+  <p class="q">为什么要随机选 e？</p>
+  <p>两层作用：省显存，每次迭代只保留约 1/T 的窗口的计算图；保证监督均匀，如果 e 固定，某个位置的 chunk 永远在同一个噪声等级被监督，别的等级就没人直接训练它。随机之后，同一个位置的 chunk 在不同迭代里轮流在各个等级上被监督。单次迭代里每个 chunk 已经被覆盖一次，随机的是它被覆盖时处在哪个等级。</p>
+</div>
+<div class="qa">
+  <p class="q">Self Forcing 那一半是什么意思？为什么要混着训？</p>
+  <p>每次迭代有一半概率不用滚动窗口，改用 Self Forcing 的方式：一次只处理一个 chunk，随机一步开梯度（见第 05 节的训练图）。每次迭代选哪种是整个 batch 共用的。</p>
+  <p>论文给的解释是：滚动窗口里各帧来自不同噪声等级，只用滚动目标训练，镜头运动可能不自然，所以混入 Self Forcing 目标当正则。消融里去掉它，漂移和闪烁都变差；但消融没有单独测镜头运动，所以“镜头运动不自然”是作者的解释，实验没有直接验证。我的理解是：滚动一半教窗口内互相修正的新能力，Self Forcing 一半让模型继续练“单个 chunk 自然地接在历史后面”，两种用法都不丢。</p>
+  <p>另外，从代码看，滚动训练里这一半走的是同一套注意力实现，所以它读到的历史是 sink 加有限几个 chunk，不是 Self Forcing 原版的全读。<span class="tg i">推断</span></p>
+</div>
+
+<details class="ev"><summary>口径与证据：评测怎么做的、数字是多少</summary>
+  <h4>评测口径</h4>
+  <ul>
+    <li>主实验：所有方法生成 30 秒视频（16 fps，832×480），prompt 是 200 多条随机抽的 MovieGen prompt。<span class="tg p">论文 §4.1</span></li>
+    <li>指标：VBench 的六项（时间闪烁、主体一致性、背景一致性、运动平滑度、美学质量、成像质量），加 <strong>ΔQuality Drift</strong>：每条视频前 5 秒与后 5 秒成像质量之差的绝对值。跨视频怎么聚合，论文没写。</li>
+    <li>基线：SkyReels-V2、MAGI-1、CausVid、Self Forcing。其中 SkyReels-V2、CausVid、Self Forcing 和 Rolling Forcing 都从同一个基座 Wan2.1-1.3B 出发，MAGI-1 论文没说。<span class="tg p">论文 §4.2</span></li>
+    <li>速度：吞吐 FPS 与延迟。<strong>延迟是生成达到稳定速度之后测的，不是首帧或首块延迟。</strong>我验算过：12 个像素帧除以 FPS，正好等于表里的延迟（15.79 对 0.76，15.38 对 0.78），说明表里的延迟就是稳态下出一个 chunk 的时间。<span class="tg i">推断</span></li>
+    <li>附录用 946 条 VBench 官方 prompt 跑了完整的 16 维。长视频只有 Figure 4 的定性对比（到 120 秒），没有数字。</li>
+  </ul>
+  <h4>主结果（Table 1）</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>方法</th><th class="n">FPS</th><th class="n">延迟（秒）</th><th class="n">ΔQuality Drift ↓</th></tr></thead>
+    <tbody>
+      <tr><td>SkyReels-V2</td><td class="n">0.49†</td><td class="n">112†</td><td class="n">5.59</td></tr>
+      <tr><td>MAGI-1</td><td class="n">0.19†</td><td class="n">282†</td><td class="n">2.15</td></tr>
+      <tr><td>CausVid</td><td class="n">15.38</td><td class="n">0.78</td><td class="n">2.18</td></tr>
+      <tr><td>Self Forcing</td><td class="n">15.38</td><td class="n">0.78</td><td class="n">1.66</td></tr>
+      <tr><td><strong>Rolling Forcing</strong></td><td class="n">15.79</td><td class="n">0.76</td><td class="n"><strong>0.01</strong></td></tr>
+    </tbody></table></div>
+  <p class="small">† 数字转引自 Self Forcing 论文。</p>
+  <h4>消融（Table 2，ΔQuality Drift 与成像质量）</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>变体</th><th>含义</th><th class="n">Drift ↓</th><th class="n">成像质量</th></tr></thead>
+    <tbody>
+      <tr><td>完整模型</td><td>—</td><td class="n">0.01</td><td class="n">70.75</td></tr>
+      <tr><td>去掉 sink</td><td>去掉全局上下文帧</td><td class="n">4.63</td><td class="n">67.30</td></tr>
+      <tr><td>推理不用滚动窗口</td><td>推理时改回逐帧去噪</td><td class="n">5.53</td><td class="n">65.19</td></tr>
+      <tr><td>去掉 Self Forcing 混合</td><td>只用滚动目标训练</td><td class="n">1.62</td><td class="n">62.00</td></tr>
+      <tr><td>训练也不用滚动</td><td>训练和推理都逐帧</td><td class="n">0.89</td><td class="n">69.24</td></tr>
+    </tbody></table></div>
+  <p>去掉 Self Forcing 混合后时间闪烁分数掉到 90.83（完整模型 97.61）。最关键的两条是 sink 和滚动推理。注意“训练也不用滚动”指训练和推理<strong>整个</strong>都是逐帧，不是“只推理滚动、训练不配套”。</p>
+  <h4>附录完整 VBench（946 条 prompt，16 维）</h4>
+  <p>总体质量分：Rolling Forcing 84.08，Self Forcing 81.39，CausVid 80.89。语义分：69.78、69.17、65.85。Dynamic Degree：Rolling Forcing 60.14，低于 Self Forcing 的 68.05 和 CausVid 的 63.88，这是观察到的数字，原因论文没分析。</p>
+  <h4>论文里没找到的</h4>
+  <p>用户研究、测速用的 GPU、ΔQuality Drift 的聚合方式、附录那套 946 条评测每条视频多长。训练 batch size：论文正文我抓到的是 8，官方配置里是 64，不一致，要回 PDF 确认。</p>
+</details>
+
+<h3 id="rf-lim">6.5 局限与可关注点</h3>
+<p>论文自己写的（附录 E）：</p>
+<ul>
+  <li>移出时间上下文的中段内容全部丢掉，没有中段记忆（方向③）。</li>
+  <li>训练很重：注意力窗口变大，再加 DMD，显存吃紧，可能限制放大到更大的模型。</li>
+  <li>窗口里未来帧是部分预先生成的，交互场景下延迟可能增加（方向①）。</li>
+</ul>
+<p>我从代码里看到、论文没强调的：</p>
+<ul>
+  <li>每个 chunk 每个视频只在一个去噪步被监督，阶梯形的退出步是随机抽的（方向①）。</li>
+  <li>KV 完全不带梯度，历史块得不到梯度。你笔记里说 SGF 让梯度通过 K/V 回传，正好对应这一点，到时核对。</li>
+  <li>教师最多看约 5 秒，再往后全靠滚动结构和 sink，没有监督直接管；全局一致性上可以考虑配合更全局的奖励（方向②）。</li>
+  <li>sink 永远是第一个块，驱逐是先进先出，没有检索（方向③）。</li>
+  <li>ΔQuality Drift 只比成像质量一项，一个从头到尾都一样差的视频漂移也会很小，要和绝对质量分一起看。</li>
+</ul>
+
+<h2 id="compare"><span class="num">07</span>三篇放在一起：对比与关系</h2>
+<div class="crux">
+  <span class="lab">先说结论</span>
+  <p>三篇不是三个并列的“算法”，而是同一条流水线上的不同位置：Self Forcing 是 D 阶段的基准，Rolling Forcing 改了 D 阶段的计算图和 memory，Causal Forcing 改了 B/C 阶段的初始化。要比较，必须先看它们在哪个阶段对齐。</p>
+</div>
+
+<div class="tbl"><table>
+  <thead><tr><th></th><th>Self Forcing</th><th>Rolling Forcing</th><th>Causal Forcing</th></tr></thead>
+  <tbody>
+    <tr><th>创新阶段</th><td>D</td><td>D</td><td>B、C</td></tr>
+    <tr><th>B/C 怎么做</th><td>合在一起：双向 Wan 当教师，ODE 回归（沿用 CausVid）</td><td>同左，同一份权重</td><td>拆开：B 用 TF 训自回归模型；C 用它当教师做因果 ODE</td></tr>
+    <tr><th>B/C 的数据</th><td>只要 prompt</td><td>同左</td><td>需要干净视频（双向 Wan 合成）加 prompt</td></tr>
+    <tr><th>B/C 里学生的上下文</th><td>带噪，各 chunk 等级各异</td><td>同左</td><td>干净前缀，C 里所有 chunk 同一等级</td></tr>
+    <tr><th>推理计算图</th><td>逐 chunk 串行，4 步，刷新 KV</td><td>窗口并行，所有 chunk 同时降一级，刷新 KV</td><td>和 Self Forcing 完全一样；长视频版本换成 Rolling Forcing</td></tr>
+    <tr><th>KV / memory</th><td>默认全读，无 sink；可选滚动缓存</td><td>sink + 最近一个干净块 + 窗口；先进先出</td><td>5 秒模型全读；长视频版同 Rolling Forcing</td></tr>
+    <tr><th>D 的训练计算图</th><td>逐 chunk 滚出；所有 chunk 共用一个随机步开梯度</td><td>窗口滚出；间隔窗口开梯度，阶梯形；混合 Self Forcing</td><td>同 Self Forcing</td></tr>
+    <tr><th>梯度</th><td>只在蓝框那次前向内；不进 KV</td><td>同左；窗口内各帧之间有梯度</td><td>同 Self Forcing</td></tr>
+    <tr><th>监督</th><td>D：DMD，更大的双向教师</td><td>D：DMD，同左</td><td>B 流匹配；C 回归教师样本；D：DMD</td></tr>
+    <tr><th>评测口径</th><td>（本笔记没读它自己的实验）</td><td>30 秒、MovieGen 200 多条、VBench 六项 + ΔQuality Drift</td><td>5 秒、自建 100 条动态 prompt、VBench + VisionReward + 动态程度</td></tr>
+    <tr><th>关键证据</th><td>—</td><td>drift 0.01 对 1.66；去掉 sink 或滚动推理都明显变差</td><td>动态程度 24 到 68，VisionReward 3.330 到 6.326（换 B/C）</td></tr>
+    <tr><th>主要局限</th><td>全串行；5 秒之外靠可选滚动缓存；B/C 的两个问题</td><td>中段无记忆；训练重；首块延迟没报</td><td>B/C 与 D 的上下文不一致；只评 5 秒</td></tr>
+  </tbody></table></div>
+
+<h3 id="rel">这几篇之间是什么关系</h3>
+<p><strong>Rolling Forcing 对 Self Forcing</strong>：两者用的是同一份 B+C 的权重，所以 B/C 完全对齐，差别只在 D 阶段的计算图和 memory。这是最干净的一组比较。</p>
+<p><strong>Causal Forcing 对 Self Forcing</strong>：D 阶段相同，B/C 不同，所以提升来自 B/C。这也是一个对齐了 D 的比较。</p>
+<p><strong>Rolling Forcing 对 Causal Forcing</strong>：没有直接可比的数字。它们改的是不同的阶段，评测长度（30 秒对 5 秒）、prompt 集、指标、机器都不同，吞吐数字（约 15.8 对 17.0 FPS）是各自测的，不能放在一起比。</p>
+<p><strong>已经存在的对齐实验</strong>：Causal Forcing 仓库里的长视频版本，就是把 Rolling Forcing 的初始化换成 Causal Forcing 的，其余不变。这正是“对齐前置阶段再比较”的做法，但我没有读到它的数字。</p>
+
+<h3 id="open">三个方向上，这三篇留下了什么空位</h3>
+<ul>
+  <li><strong>① 计算图</strong>：Self Forcing 全串行，Rolling Forcing 改成窗口并行；Causal Forcing 没动 D。窗口并行的代价是预热和训练重，首块延迟没有人报过。</li>
+  <li><strong>② 监督</strong>：三篇的 D 都是 DMD，没有人动过。教师最多看约 5 秒，更长的视频没有直接监督。</li>
+  <li><strong>③ memory</strong>：Self Forcing 先进先出、没有 sink，Rolling Forcing 加了固定的第一块 sink，仍然是先进先出，中段会丢。没有检索。</li>
+</ul>
+<p>还有一条贯穿的线：三篇里历史的 KV 在 D 的训练时都是常数，梯度不进去。你笔记里说 SGF 让梯度通过 K/V 回传，并且按仓库 README，它基于 Causal Forcing 的初始化，这正是下一步要读的。<span class="tg i">待核对</span></p>
+
+<h2 id="appendix"><span class="num">08</span>附录：易错点、待核对清单、术语、来源</h2>
+
+<h3 id="fixes">8.1 聊的过程中纠正过的地方</h3>
+<p>这些是容易再理解错的点，复习时可以对照。</p>
+<div class="fix">
+  <span class="lab">B/C 阶段</span>
+  <ul>
+    <li><strong>快照存的是潜变量本身</strong>，也就是教师在那个时刻的带噪整段视频，不是 velocity，也不是 hidden，也不是“预测的干净结果”。</li>
+    <li><strong>教师的去噪和学生的去噪不是一回事</strong>：教师沿 velocity 用 Euler 走小步，学生是预测干净结果再加新噪声走大步。</li>
+    <li><strong>原来 B+C 学生读到的上下文是带噪的</strong>，输入全是带噪的，输出是干净的；这和普通的“干净历史加带噪当前”不同，也和推理不一致。</li>
+    <li><strong>拼输入时不加新噪声</strong>，小块直接取自教师轨迹的快照。</li>
+    <li><strong>教师只推理，不训练</strong>。B/C 里的“造数据”是教师推理，学生才是训练。</li>
+    <li><strong>B 不是蒸馏</strong>，是普通训练（SFT），需要视频，因为没有教师，监督来自视频。</li>
+    <li><strong>Causal Forcing 里视频不是“真实视频”</strong>，是双向 Wan 合成的干净视频。C 里它不加噪，只当干净前缀；X 也不是原视频，是教师在这个前缀下生成的样本。</li>
+    <li><strong>TF 里的 teacher 不是蒸馏里的教师</strong>，和预测比较的是数据里干净的视频。</li>
+    <li><strong>D 的学生就是 C 结束时的那个模型</strong>；教师和学生在 C 里都从 B 的 ckpt 出发。</li>
+    <li>原来的 B+C 只需要 prompt；Causal Forcing 的 B 和 C 需要视频；D 只需要 prompt。</li>
+    <li>B、C、D 都是全参数训练，没有 LoRA。</li>
+  </ul>
+</div>
+<div class="fix">
+  <span class="lab">D 阶段与前向</span>
+  <ul>
+    <li><strong>消融里“训练也不用滚动”</strong>是训练和推理整个都逐帧，不是“只推理滚动、训练不配套”。</li>
+    <li><strong>训练里开头的 chunk 会被覆盖</strong>：预热窗口也参与，所以每个 chunk 恰好被一个开梯度窗口盖住。</li>
+    <li><strong>图里的 chunk 数不是固定的</strong>，视频长度每次迭代随机抽。<strong>DMD 里的教师也没有生成视频</strong>，它只对加噪的预测视频打分；DMD 不跟真实视频比，训练里没有视频，只有 prompt。</li>
+    <li><strong>窗口里的帧并行，但不是互不干扰</strong>，每层 attention 都在互相读。</li>
+    <li><strong>窗口传播的输入不是 clean，也没有 0 这个等级</strong>，0 只在 KV 刷新那一次前向里。</li>
+    <li><strong>输出的 chunk 不能立刻当 KV</strong>，必须先单独过一遍刷新。</li>
+    <li><strong>论文报的延迟是稳态下出一个 chunk 的时间</strong>，不是首块延迟。</li>
+    <li><strong>“镜头运动不自然”是作者对混合 Self Forcing 的解释</strong>，消融没有单独测它。</li>
+    <li><strong>Causal Forcing 的 5 秒模型推理是不限 KV</strong>；长视频版本才是滚动窗口，因为那是 Rolling Forcing 的代码。</li>
+    <li>token 的 RoPE：跨帧同一个 (h, w) 的空间分量相同、时间分量不同。</li>
+  </ul>
+</div>
+
+<h3 id="todo">8.2 待核对清单</h3>
+<p>下面是我标过“推断”或在抓取文本里没读到、引用前要自己核对的：</p>
+<ul>
+  <li>Rolling Forcing 的训练 batch size：论文正文我抓到 8，官方配置 64，不一致。</li>
+  <li>预热窗口也会跑 KV 刷新但被覆盖；收尾窗口读的历史更长。这两点是我读代码得到的，没有实际运行。</li>
+  <li>Rolling Forcing 的首块延迟：论文没报，我的“几倍”是按 query 长度成正比的粗估。</li>
+  <li>论文附录 D 里几种 RoPE 放法的具体结论。</li>
+  <li>Self Forcing/CausVid 的 B+C，我是从造数据脚本和 ODE 回归代码读的，没读到 Self Forcing 论文自己的描述；“上下文带噪接近 DF”是推断。</li>
+  <li>Causal Forcing：Lemma 3.2 的证明、B 的 TF 损失公式、存下来的轨迹噪声等级集合；Table 2 里帧级 Self Forcing 一行的指令遵循数字；“CD 指令遵循提升 60”和表里 18 对 42 对不上。</li>
+  <li>Self Forcing 自己论文里的实验，本笔记没有读，对比数字都来自另外两篇的转引。</li>
+  <li>SGF、SGF+ 都还没读。</li>
+</ul>
+
+<h3 id="glossary">8.3 术语表</h3>
+<div class="tbl"><table>
+  <thead><tr><th>术语</th><th>含义</th></tr></thead>
+  <tbody>
+    <tr><th>latent 帧 / chunk</th><td>VAE 压缩后的一帧；3 个 latent 帧一组，共用噪声等级</td></tr>
+    <tr><th>token</th><td>一个 latent 帧切成的空间块，是 Q/K/V 的单位</td></tr>
+    <tr><th>x̂₀ / velocity</th><td>模型预测的干净结果 / 预测的流；x̂₀ = xₜ − σ·v</td></tr>
+    <tr><th>快照 / X</th><td>教师去噪过程中某个时刻整段视频的潜变量 / 教师走完的结果</td></tr>
+    <tr><th>ODE 蒸馏（回归）</th><td>让学生从快照一步预测教师走完的 X</td></tr>
+    <tr><th>TF / DF</th><td>teacher forcing：上下文是数据里干净的内容；diffusion forcing：上下文带噪，每个 chunk 独立抽噪声等级</td></tr>
+    <tr><th>KV 缓存 / KV 刷新</th><td>已输出帧的 K、V；刷新是把刚输出的干净结果单独过一遍模型存成 K、V</td></tr>
+    <tr><th>sink</th><td>永远保留在缓存里的第一个 chunk，作为全局锚点</td></tr>
+    <tr><th>窗口</th><td>一次前向里同时去噪的那几个 chunk</td></tr>
+    <tr><th>退出步（exit）</th><td>Self Forcing 里随机选的、开梯度的那一步；Rolling Forcing 里指开梯度的窗口</td></tr>
+    <tr><th>DMD / 假分数网络</th><td>分布匹配蒸馏；跟着生成器训练、代表生成分布的那个网络</td></tr>
+    <tr><th>帧级单射性</th><td>每个带噪帧只对应唯一的干净帧，ODE 蒸馏学得准的前提</td></tr>
+    <tr><th>exposure bias</th><td>训练用干净的数据上下文、推理用自己生成的，导致误差累积</td></tr>
+  </tbody></table></div>
+
+<h3 id="sources">8.4 来源</h3>
+<ul>
+  <li>Rolling Forcing：<a href="https://arxiv.org/abs/2509.25161">arXiv 2509.25161</a>（ICLR 2026）；代码 <a href="https://github.com/TencentARC/RollingForcing">TencentARC/RollingForcing</a>。</li>
+  <li>Causal Forcing：<a href="https://arxiv.org/abs/2602.02214">arXiv 2602.02214</a>；代码 <a href="https://github.com/thu-ml/Causal-Forcing">thu-ml/Causal-Forcing</a>。</li>
+  <li>Self Forcing：<a href="https://arxiv.org/abs/2506.08009">arXiv 2506.08009</a>（只读了摘要）；代码 <a href="https://github.com/guandeh17/Self-Forcing">guandeh17/Self-Forcing</a>，含造数据脚本和 ODE 回归的训练代码。</li>
+  <li>论文正文与表格是从 arXiv 的 HTML 与 PDF 抓取的文本，我没有逐页核对原 PDF；引用数字前请回原文。</li>
+</ul>
+
+
+</main>
+</div>
+<script>
+/* figure helpers + overview + token forward + masks + injectivity */
+var FIG = (function(){
+  var reg = {};
+  var COL = {1:['#9FE1CB','#04342C'],2:['#B5D4F4','#0C447C'],3:['#85B7EB','#042C53'],4:['#378ADD','#042C53'],5:['#5DCAA5','#04342C']};
+  var PUR = {fill:'#CECBF6', fill2:'#AFA9EC', stroke:'#7F77DD', text:'#26215C'};
+  function qf(root){ return function(k){ return root.querySelector('[data-k="'+k+'"]'); }; }
+  function register(name, fn){ reg[name] = fn; }
+  function mountAll(){
+    var figs = document.querySelectorAll('figure[data-fig]');
+    for(var i=0;i<figs.length;i++){
+      var f = figs[i], k = f.getAttribute('data-fig'), body = f.querySelector('.fig-body');
+      if(reg[k] && body){ try{ reg[k](body); }catch(e){ body.textContent = '图加载失败：'+e.message; } }
+    }
+  }
+  return {reg:reg, COL:COL, PUR:PUR, qf:qf, register:register, mountAll:mountAll};
+})();
+
+/* ---------- 1. overview: stages A/B/C/D x papers ---------- */
+FIG.register('overview', function(root){
+  var rows = [
+    {n:'Self Forcing', tag:'D 阶段（B+C 沿用 CausVid）',
+     B:{t:'沿用：B 和 C 合在一次 ODE 回归里，双向 Wan 当教师',s:'old'}, C:{t:'同左：学生同时变因果、变 4 步',s:'old'},
+     D:{t:'创新：自己滚出历史、KV 缓存、随机选一步开梯度、整段视频 DMD',s:'new'},
+     note:'Self Forcing 的创新只在 D：让模型自己一个 chunk 一个 chunk 滚出历史，再对整段视频做 DMD。B 和 C 它沿用 CausVid 的做法。'},
+    {n:'Rolling Forcing', tag:'D 阶段（B+C 沿用）',
+     B:{t:'沿用 Self Forcing 的 B+C（同一份权重）',s:'old'}, C:{t:'同左',s:'old'},
+     D:{t:'创新：滚动窗口并行去噪、attention sink、非重叠窗口开梯度、混合 Self Forcing 的做法',s:'new'},
+     note:'Rolling Forcing 也只动 D：改的是去噪的计算图（方向①）和 memory（方向③，sink）。'},
+    {n:'Causal Forcing', tag:'B/C 阶段',
+     B:{t:'创新：用 TF 训一个自回归模型',s:'new'}, C:{t:'创新：用它当教师做因果 ODE 蒸馏',s:'new'},
+     D:{t:'沿用 Self Forcing 的 DMD（非对称：教师是更大的双向模型）',s:'old'},
+     note:'Causal Forcing 把 B 和 C 拆开并换成合理的自回归，D 沿用 Self Forcing。仓库里的长视频版本，就是把 Rolling Forcing 的初始化换成它的。'}
+  ];
+  var sel = 1;
+  var h = '<div style="overflow-x:auto"><table class="ov" style="min-width:560px"><thead><tr><th>论文</th><th>A 动作条件</th><th>B 因果适配</th><th>C 少步初始化</th><th>D 自身历史训练</th></tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    h += '<tr data-r="'+i+'" style="cursor:pointer"><td><strong>'+r.n+'</strong><br><span class="small">'+r.tag+'</span></td><td class="small">—</td>'
+      + ['B','C','D'].map(function(k){var c=r[k];return '<td data-c="'+(c.s)+'">'+c.t+'</td>';}).join('')+'</tr>';
+  });
+  h += '</tbody></table></div><div class="rd" data-k="rd"></div>';
+  root.innerHTML = h;
+  var q = FIG.qf(root);
+  function paint(){
+    var trs = root.querySelectorAll('tr[data-r]');
+    trs.forEach(function(tr,i){
+      tr.style.outline = (i===sel) ? '2px solid var(--accent)' : 'none';
+      tr.style.outlineOffset = '-2px';
+      tr.querySelectorAll('td[data-c]').forEach(function(td){
+        var nw = td.getAttribute('data-c')==='new';
+        td.style.background = nw ? 'var(--accent-soft)' : 'transparent';
+        td.style.color = nw ? 'var(--ink)' : 'var(--ink3)';
+        td.style.fontWeight = nw ? '600' : '400';
+      });
+    });
+    q('rd').textContent = rows[sel].note;
+  }
+  root.querySelectorAll('tr[data-r]').forEach(function(tr){ tr.onclick = function(){ sel = +tr.getAttribute('data-r'); paint(); }; });
+  paint();
+});
+
+/* ---------- 2. token-level forward ---------- */
+FIG.register('token', function(root){
+  var COL = FIG.COL, qi = 4;
+  root.innerHTML = '<svg data-k="svg" viewBox="0 0 680 330" width="100%" role="img"><title>token 级别的一次 forward</title><desc>左侧是缓存帧和窗口帧的 token 输入，经过 DiT 层，窗口每帧输出一个 velocity；右侧是一层 attention 里窗口 token 的 Q 对缓存和窗口全部 K 的注意力</desc></svg><div class="rd" data-k="tt"></div>';
+  var q = FIG.qf(root);
+  var groups = [{n:'C1 sink',c:true},{n:'C3 近',c:true},{n:'C4',lv:1},{n:'C5',lv:2},{n:'C6',lv:3},{n:'C7',lv:4}];
+  function draw(){
+    var h='', fw=12, fg=3, cg=8, x=8, y0=34, count=0;
+    h+='<text x="8" y="16" font-size="12" fill="var(--text-secondary)">输入：每帧一列 token</text>';
+    groups.forEach(function(g,gi){
+      var gx=x;
+      for(var f=0;f<3;f++){
+        var idx=count++, isw=!g.c, sel=isw&&(idx-6===qi);
+        for(var t=0;t<4;t++){
+          var fill=g.c?'#CECBF6':COL[g.lv][0], stk=g.c?'#7F77DD':(sel?'#185FA5':'none');
+          h+='<rect data-q="'+(isw?idx-6:-1)+'" x="'+x+'" y="'+(y0+t*10)+'" width="'+fw+'" height="8" rx="2" fill="'+fill+'" stroke="'+stk+'" stroke-width="'+(sel?1.5:0.5)+'" style="cursor:'+(isw?'pointer':'default')+'"/>';
+        }
+        x+=fw+fg;
+      }
+      var mid=(gx+x-fg)/2;
+      h+='<text x="'+mid+'" y="'+(y0+54)+'" text-anchor="middle" font-size="11" fill="'+(g.c?'#7F77DD':'var(--text-secondary)')+'">'+(g.c?'KV':'t'+g.lv)+'</text>';
+      h+='<text x="'+mid+'" y="'+(y0+68)+'" text-anchor="middle" font-size="11" fill="var(--text-muted)">'+g.n+'</text>';
+      x+=cg;
+    });
+    h+='<text x="8" y="'+(y0+88)+'" font-size="11" fill="var(--text-muted)">紫色缓存帧：已输出，只提供 K、V</text>';
+    h+='<line x1="160" y1="'+(y0+98)+'" x2="160" y2="'+(y0+114)+'" stroke="var(--border-strong)" stroke-width="1"/>';
+    h+='<rect x="8" y="'+(y0+114)+'" width="306" height="64" rx="8" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="0.5"/>';
+    h+='<text x="161" y="'+(y0+138)+'" text-anchor="middle" font-size="13" font-weight="500" fill="var(--text-primary)">DiT 层 × L（示意）</text>';
+    h+='<text x="161" y="'+(y0+158)+'" text-anchor="middle" font-size="11" fill="var(--text-secondary)">每层：attention（右图）+ MLP；所有 token 并行</text>';
+    h+='<line x1="160" y1="'+(y0+178)+'" x2="160" y2="'+(y0+196)+'" stroke="var(--border-strong)" stroke-width="1"/>';
+    h+='<text x="8" y="'+(y0+212)+'" font-size="12" fill="var(--text-secondary)">输出：窗口每帧一个 velocity，由该帧的 token 算出</text>';
+    var oy=y0+222, xx=8;
+    groups.forEach(function(g,gi){
+      for(var f=0;f<3;f++){
+        if(g.c){ h+='<rect x="'+xx+'" y="'+oy+'" width="'+fw+'" height="22" rx="3" fill="none" stroke="#7F77DD" stroke-dasharray="3 2" stroke-width="0.8"/>'; }
+        else { var sel=((gi-2)*3+f===qi); h+='<rect x="'+xx+'" y="'+oy+'" width="'+fw+'" height="22" rx="3" fill="'+COL[g.lv][0]+'" stroke="'+(sel?'#185FA5':'none')+'" stroke-width="1.5"/>'; }
+        xx+=fw+fg;
+      }
+      xx+=cg;
+    });
+    h+='<text x="8" y="'+(oy+38)+'" font-size="11" fill="var(--text-muted)">虚线框：缓存帧没有输出</text>';
+    h+='<text x="8" y="'+(oy+52)+'" font-size="11" fill="var(--text-muted)">velocity 换算成 x̂₀；C4 的 x̂₀ 是最终输出，其余重新加噪</text>';
+    var mx=388, my=58, cs=12, nQ=12, nK=18;
+    h+='<text x="'+mx+'" y="16" font-size="12" fill="var(--text-secondary)">某一层 attention：行 Q，列 K/V</text>';
+    var kx=[]; for(var k=0;k<nK;k++) kx.push(mx+k*cs+(k>=3?3:0)+(k>=6?3:0));
+    [{a:0,b:2,l:'sink'},{a:3,b:5,l:'近'},{a:6,b:17,l:'窗口（本次正在去噪）'}].forEach(function(g){
+      var x1=kx[g.a], x2=kx[g.b]+cs;
+      h+='<line x1="'+x1+'" y1="'+(my-8)+'" x2="'+x2+'" y2="'+(my-8)+'" stroke="var(--border-strong)" stroke-width="1"/><text x="'+((x1+x2)/2)+'" y="'+(my-12)+'" text-anchor="middle" font-size="11" fill="var(--text-secondary)">'+g.l+'</text>';
+    });
+    for(var qq=0;qq<nQ;qq++){
+      var qy=my+qq*cs+Math.floor(qq/3)*3, sel=(qq===qi);
+      for(var k2=0;k2<nK;k2++){
+        var cache=k2<6;
+        h+='<rect data-q="'+qq+'" x="'+kx[k2]+'" y="'+qy+'" width="'+(cs-1)+'" height="'+(cs-1)+'" rx="1.5" fill="'+(cache?(sel?'#AFA9EC':'#CECBF6'):(sel?'#85B7EB':'#B5D4F4'))+'" style="cursor:pointer"/>';
+      }
+      if(sel) h+='<rect x="'+(mx-2)+'" y="'+(qy-1)+'" width="'+(kx[nK-1]+cs-mx+4)+'" height="'+(cs+1)+'" rx="2" fill="none" stroke="#185FA5" stroke-width="1.5"/>';
+    }
+    var lbl=['C4','C5','C6','C7'];
+    for(var g2=0;g2<4;g2++) h+='<text x="'+(mx-6)+'" y="'+(my+g2*(3*cs+3)+20)+'" text-anchor="end" font-size="11" fill="var(--text-secondary)">'+lbl[g2]+'</text>';
+    h+='<text x="'+(mx-34)+'" y="'+(my+88)+'" text-anchor="middle" font-size="11" fill="var(--text-secondary)" transform="rotate(-90 '+(mx-34)+' '+(my+88)+')">Q：只有窗口的帧</text>';
+    var by=my+nQ*cs+9+10;
+    h+='<text x="'+mx+'" y="'+by+'" font-size="11" fill="var(--text-muted)">每格 = 一帧对一帧的全部 token 对；没有遮罩，整块可见</text>';
+    h+='<text x="'+mx+'" y="'+(by+16)+'" font-size="11" fill="var(--text-muted)">紫色：窗口读缓存；蓝色：窗口内部双向</text>';
+    h+='<text x="'+mx+'" y="'+(by+32)+'" font-size="11" fill="var(--text-muted)">缓存帧没有 Q 行，所以不被更新</text>';
+    var svg=q('svg'); svg.innerHTML=h;
+    var chunk=Math.floor(qi/3);
+    q('tt').textContent='选中：C'+(4+chunk)+' 的第 '+(qi%3+1)+' 帧（噪声等级 t'+(chunk+1)+'）。它的每个 token 的 Q 都要和右边 18 帧的 K 做注意力，再取对应的 V；这一帧的 velocity 由它自己的 token 经过全部层后得到。点任意窗口帧可以换。';
+    svg.querySelectorAll('[data-q]').forEach(function(n){ var v=+n.getAttribute('data-q'); if(v>=0) n.onclick=function(){ qi=v; draw(); }; });
+  }
+  draw();
+});
+
+/* ---------- 3. masks gallery ---------- */
+FIG.register('masks', function(root){
+  root.innerHTML = '<div class="bar" data-k="bar"><button data-m="causal" class="on">块因果（B/C 阶段，SF/CF 推理）</button><button data-m="window">滚动窗口（Rolling Forcing）</button><button data-m="tf">TF（Causal Forcing 的 B 和 C）</button></div><svg data-k="svg" viewBox="0 0 680 270" width="100%" role="img"><title>三种注意力掩码</title><desc>块级注意力矩阵</desc></svg><div class="rd" data-k="rd"></div>';
+  var q = FIG.qf(root), mode = 'causal';
+  function matrix(x0,y0,cs,rows,cols,allow,color,rowLab,colLab,gapR,gapC){
+    var h='';
+    function px(i,gap){ return i*cs + (gap&&i>=gap?6:0); }
+    for(var c=0;c<cols;c++) h+='<text x="'+(x0+px(c,gapC)+cs/2)+'" y="'+(y0-6)+'" text-anchor="middle" font-size="11" fill="var(--text-secondary)">'+colLab(c)+'</text>';
+    for(var r=0;r<rows;r++){
+      h+='<text x="'+(x0-6)+'" y="'+(y0+px(r,gapR)+cs/2+4)+'" text-anchor="end" font-size="11" fill="var(--text-secondary)">'+rowLab(r)+'</text>';
+      for(var c2=0;c2<cols;c2++){
+        var a=allow(r,c2);
+        h+='<rect x="'+(x0+px(c2,gapC))+'" y="'+(y0+px(r,gapR))+'" width="'+(cs-2)+'" height="'+(cs-2)+'" rx="3" fill="'+(a?color(r,c2):'var(--surface-1)')+'" stroke="'+(a?'none':'var(--border)')+'" stroke-width="0.5"/>';
+      }
+    }
+    return h;
+  }
+  function draw(){
+    root.querySelectorAll('button[data-m]').forEach(function(b){ b.className = (b.getAttribute('data-m')===mode)?'on':''; });
+    var h='', t='';
+    if(mode==='causal'){
+      h+='<text x="40" y="18" font-size="12" fill="var(--text-secondary)">行 = 当前 chunk（Q），列 = 能读的 chunk（K/V）</text>';
+      h+=matrix(60,40,30,6,6,function(r,c){return c<=r;},function(r,c){return c===r?'#85B7EB':'#CECBF6';},function(r){return 'C'+(r+1);},function(c){return 'C'+(c+1);});
+      h+='<text x="290" y="70" font-size="13" fill="var(--text-primary)">每个 chunk 读自己和更早的 chunk。</text><text x="290" y="92" font-size="13" fill="var(--text-primary)">chunk 内部的几帧互相看，不能看后面的。</text><text x="290" y="120" font-size="12" fill="var(--text-muted)">紫色：读历史（推理时就是 KV 缓存）；蓝色：读自己</text>';
+      t='这是 B、C 阶段训出来的模型原本的注意力：一次处理一个 chunk，后面的 chunk 对前面不可见。Self Forcing 和 Causal Forcing 的推理都是这样。';
+    } else if(mode==='window'){
+      h+='<text x="40" y="18" font-size="12" fill="var(--text-secondary)">行 = 窗口里的 chunk（Q），列 = 缓存 + 窗口（K/V）</text>';
+      var colsL=['sink','近','C4','C5','C6','C7'];
+      h+=matrix(80,40,34,4,6,function(){return true;},function(r,c){return c<2?'#CECBF6':'#85B7EB';},function(r){return 'C'+(r+4);},function(c){return colsL[c];},0,2);
+      h+='<text x="330" y="66" font-size="13" fill="var(--text-primary)">窗口里的 chunk 噪声等级各不相同，</text><text x="330" y="88" font-size="13" fill="var(--text-primary)">互相全部可见：没有遮罩。</text><text x="330" y="116" font-size="13" fill="var(--text-primary)">窗口读缓存，缓存没有 Q 行，不读窗口。</text><text x="330" y="144" font-size="12" fill="var(--text-muted)">紫色：读缓存；蓝色：窗口内部双向</text>';
+      t='Rolling Forcing 的窗口内是全双向，这和 B、C 阶段的块因果不同。窗口和历史之间仍然是单向的，但那是靠结构（缓存没有 Q 行）实现的，不是靠遮罩。';
+    } else {
+      h+='<text x="40" y="18" font-size="12" fill="var(--text-secondary)">前 6 行是数据里干净的 chunk（G），后 6 行是带噪的 chunk（N）</text>';
+      h+=matrix(62,36,19,12,12,function(r,c){ if(r<6) return c<6&&c<=r; var i=r-6; if(c<6) return c<i; return (c-6)===i; },function(r,c){ if(c<6) return '#CECBF6'; return '#85B7EB'; },function(r){return (r<6?'G':'N')+((r%6)+1);},function(c){return (c<6?'G':'N')+((c%6)+1);},6,6);
+      h+='<text x="330" y="70" font-size="13" fill="var(--text-primary)">干净 chunk 之间是块因果。</text><text x="330" y="92" font-size="13" fill="var(--text-primary)">带噪的 N_i 读更早的干净 G，</text><text x="330" y="114" font-size="13" fill="var(--text-primary)">再加上自己；读不到 G_i（会泄露答案）。</text><text x="330" y="142" font-size="12" fill="var(--text-muted)">紫色：读干净上下文；蓝色：读自己</text>';
+      t='这是 TF 的掩码：数据里干净的上下文和带噪的 chunk 拼在同一个序列里，一次前向就能并行训所有 chunk。';
+    }
+    q('svg').innerHTML = h;
+    q('rd').textContent = t;
+  }
+  root.querySelectorAll('button[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.getAttribute('data-m'); draw(); }; });
+  draw();
+});
+
+/* ---------- 4. injectivity toy ---------- */
+FIG.register('inj', function(root){
+  root.innerHTML = '<div class="bar"><button data-b="1" class="on">双向教师（Self Forcing 的做法）</button><button data-b="0">自回归教师（Causal Forcing 的做法）</button></div><svg data-k="svg" viewBox="0 0 680 330" width="100%" role="img"><title>帧级单射性示意</title><desc>同样的学生输入，在双向教师下对应不同目标，在自回归教师下对应同一个目标</desc></svg><div class="rd" data-k="tx"></div>';
+  var q = FIG.qf(root), bi = true;
+  function box(x,y,w,hh,f,s,t,tc){ return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+hh+'" rx="6" fill="'+f+'" stroke="'+s+'" stroke-width="0.8"/><text x="'+(x+w/2)+'" y="'+(y+hh/2+4)+'" text-anchor="middle" font-size="12" fill="'+tc+'">'+t+'</text>'; }
+  function draw(){
+    root.querySelectorAll('button[data-b]').forEach(function(b){ b.className = ((b.getAttribute('data-b')==='1')===bi)?'on':''; });
+    var h='';
+    var groups=[{x:20,n:'样本 A',c3:'#9FE1CB',c3t:'#04342C',tg:'#85B7EB',tgt:'#042C53'},{x:360,n:'样本 B',c3:'#F5C4B3',c3t:'#712B13',tg:bi?'#F0997B':'#85B7EB',tgt:bi?'#4A1B0C':'#042C53'}];
+    groups.forEach(function(g){
+      h+='<text x="'+g.x+'" y="18" font-size="13" font-weight="500" fill="var(--text-primary)">'+g.n+'：带噪输入</text>';
+      h+=box(g.x,28,90,34,'var(--surface-1)','var(--border-strong)','C1（相同）','var(--text-secondary)');
+      h+=box(g.x+100,28,90,34,'#D3D1C7','#888780','C2（相同）','#2C2C2A');
+      h+=box(g.x+200,28,90,34,g.c3,'none','C3（不同）',g.c3t);
+      h+='<path d="M'+(g.x+145)+' 66 L'+(g.x+145)+' 100" stroke="var(--border-strong)" stroke-width="1" fill="none"/><text x="'+(g.x+152)+'" y="88" font-size="11" fill="var(--text-secondary)">教师去噪</text>';
+      h+=box(g.x+100,104,90,34,g.tg,'none','C2 的干净结果',g.tgt);
+      h+='<rect x="'+(g.x-4)+'" y="24" width="196" height="42" rx="8" fill="none" stroke="#7F77DD" stroke-width="1.2" stroke-dasharray="4 3"/>';
+    });
+    h+='<text x="20" y="84" font-size="11" fill="#7F77DD">学生只看到这两块</text><text x="360" y="84" font-size="11" fill="#7F77DD">学生只看到这两块</text>';
+    h+='<path d="M165 142 L330 196" stroke="var(--border-strong)" stroke-width="1" fill="none"/><path d="M505 142 L350 196" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+    h+=box(190,190,300,40,'var(--surface-1)','#7F77DD','学生的输入：两个样本完全一样','var(--text-primary)');
+    h+='<path d="M340 232 L340 256" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+    if(bi) h+=box(190,258,300,50,'#AFA9EC','none','目标一个偏蓝一个偏橙：学到的只能是平均（模糊）','#26215C');
+    else h+=box(190,258,300,50,'#85B7EB','none','目标只有一个：能学准，画面清晰','#042C53');
+    q('svg').innerHTML = h;
+    q('tx').textContent = bi ? '双向教师去噪 C2 时会参考后面的 C3，C3 不同，C2 的最终结果就不同。学生看不到 C3，只能对两个不同的目标求平均。' : '自回归教师去噪 C2 时只看 C2 和它前面的干净内容，C3 不影响它。同样的输入对应同一个目标，学生可以精确学到。';
+  }
+  root.querySelectorAll('button[data-b]').forEach(function(b){ b.onclick=function(){ bi=(b.getAttribute('data-b')==='1'); draw(); }; });
+  draw();
+});
+
+/* SF graph (infer/train), RF graph (infer/train), Causal Forcing teacher-forcing graph */
+
+/* ---------- 5. Self Forcing graph ---------- */
+FIG.register('sf', function(root){
+  var COL = FIG.COL, T=4, NC=6, x0=48, cw=70, gx=6;
+  var mode = root.getAttribute('data-mode') || 'infer', j=1, Lm=0, cur=0, seq=[];
+  root.innerHTML =
+    '<div class="bar"><button data-m="infer">推理</button><button data-m="train">训练（随机选一步开梯度）</button><span style="flex:1"></span><button data-k="pv">上一步</button><button data-k="nx">下一步</button><button data-k="r0">回到开头</button></div>'+
+    '<div class="bar" data-k="ctl"></div>'+
+    '<svg data-k="svg" viewBox="0 0 720 520" width="100%" role="img"><title>Self Forcing 的计算图</title><desc>每个 chunk 依次做若干次前向，再刷新 KV；紫色格是该行读取的历史 KV</desc></svg>'+
+    '<div class="rd" data-k="rd"></div><div class="ft" data-k="ft"></div>';
+  var q = FIG.qf(root);
+  function cx(c){ return x0+(c-1)*(cw+gx); }
+  function build(){
+    seq=[]; var n=0, steps = (mode==='infer')?T:(j+1);
+    for(var c=1;c<=NC;c++){ for(var i=0;i<steps;i++){ n++; seq.push({t:'f',c:c,i:i,n:n}); } seq.push({t:'kv',c:c}); }
+    if(cur>=seq.length) cur=seq.length-1;
+  }
+  function ctl(){
+    var c=q('ctl'), h='';
+    if(mode==='train') h='<label>选中的那一步（开梯度）</label><input type="range" data-k="j" min="0" max="3" step="1" value="'+j+'" style="width:130px"/><span data-k="jo" style="font-weight:600"></span><span class="small">每个视频抽一次，所有 chunk 共用</span>';
+    else h='<label>只保留最近几个 chunk 的 KV</label><input type="range" data-k="L" min="0" max="4" step="1" value="'+Lm+'" style="width:130px"/><span data-k="Lo" style="font-weight:600"></span><span class="small">0 = 不限（默认）；非零是可选的滚动 KV 缓存</span>';
+    c.innerHTML=h;
+    var js=q('j'); if(js) js.oninput=function(){ j=+js.value; build(); draw(); };
+    var ls=q('L'); if(ls) ls.oninput=function(){ Lm=+ls.value; draw(); };
+  }
+  function draw(){
+    root.querySelectorAll('button[data-m]').forEach(function(b){ b.className=(b.getAttribute('data-m')===mode)?'on':''; });
+    var jo=q('jo'); if(jo) jo.textContent='t'+(T-j);
+    var lo=q('Lo'); if(lo) lo.textContent=(Lm===0)?'不限':'最近 '+Lm+' 个';
+    var h='', y=24, lay=[], i;
+    for(i=0;i<seq.length;i++){ var rh=seq[i].t==='f'?16:14; lay.push({y:y,rh:rh}); y+=rh+2; }
+    var endY=y;
+    for(var c=1;c<=NC;c++) h+='<text x="'+(cx(c)+cw/2)+'" y="14" text-anchor="middle" font-size="12" fill="var(--text-secondary)">C'+c+'</text>';
+    for(i=0;i<seq.length;i++){ if(i===cur) h+='<rect x="0" y="'+(lay[i].y-2)+'" width="716" height="'+(lay[i].rh+4)+'" rx="6" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="0.5"/>'; }
+    var steps=(mode==='infer')?T:(j+1);
+    for(i=0;i<seq.length;i++){
+      var it=seq[i], L=lay[i];
+      if(it.t==='f'){
+        var cc0=it.c, lv=T-it.i, last=(it.i===steps-1), g=(mode==='train'&&last);
+        h+='<text x="40" y="'+(L.y+L.rh/2+4)+'" text-anchor="end" font-size="11" fill="'+(g?'#185FA5':'var(--text-muted)')+'">F'+it.n+'</text>';
+        if(g) h+='<rect x="2" y="'+(L.y-1)+'" width="590" height="'+(L.rh+2)+'" rx="5" fill="none" stroke="#185FA5" stroke-width="1.5"/><text x="600" y="'+(L.y+L.rh/2+4)+'" font-size="11" font-weight="500" fill="#185FA5">有梯度</text>';
+        for(var d=1;d<=cc0-1;d++){
+          var vis=(mode==='train')||(Lm===0)||(d>=cc0-Lm);
+          if(vis) h+='<rect x="'+cx(d)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="4" fill="#CECBF6" stroke="#7F77DD" stroke-width="1"/><text x="'+(cx(d)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">读 KV</text>';
+          else h+='<rect x="'+cx(d)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="4" fill="none" stroke="var(--border-strong)" stroke-dasharray="3 2" stroke-width="1"/><text x="'+(cx(d)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" fill="var(--text-muted)">已丢弃</text>';
+        }
+        var cc=COL[lv];
+        if(last) h+='<rect x="'+cx(cc0)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="4" fill="'+cc[0]+'"/><text x="'+(cx(cc0)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" font-weight="500" fill="'+cc[1]+'">t'+lv+'</text>'+(g?'':'<text x="'+(cx(NC)+cw+10)+'" y="'+(L.y+L.rh/2+4)+'" font-size="11" font-weight="500" fill="#0F6E56">输出 C'+cc0+'</text>');
+        else h+='<rect x="'+cx(cc0)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="4" fill="var(--surface-1)" stroke="var(--border)" stroke-width="0.5"/><text x="'+(cx(cc0)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" fill="var(--text-muted)">t'+lv+'</text>';
+      } else {
+        h+='<rect x="'+cx(it.c)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/><text x="'+(cx(it.c)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" fill="#085041">写入 KV</text><text x="600" y="'+(L.y+L.rh/2+4)+'" font-size="11" fill="#0F6E56">刷新 KV'+(mode==='train'?'（无梯度）':'')+'</text>';
+      }
+    }
+    var py=endY+8;
+    if(mode==='train'){
+      var gl=T-j;
+      h+='<text x="40" y="'+(py+15)+'" text-anchor="end" font-size="12" fill="var(--text-secondary)">预测</text>';
+      for(var c2=1;c2<=NC;c2++){ var c3=COL[gl]; h+='<rect x="'+cx(c2)+'" y="'+py+'" width="'+cw+'" height="22" rx="5" fill="'+c3[0]+'"/><text x="'+(cx(c2)+cw/2)+'" y="'+(py+15)+'" text-anchor="middle" font-size="12" font-weight="500" fill="'+c3[1]+'">来自 t'+gl+'</text>'; }
+      h+='<text x="48" y="'+(py+42)+'" font-size="12" fill="var(--text-secondary)">蓝框行的输出拼成这一条，交给 DMD；梯度只回到蓝框行的那次前向</text>';
+      py+=52;
+    } else py+=0;
+    for(i=0;i<seq.length;i++) h+='<rect data-i="'+i+'" x="0" y="'+(lay[i].y-1)+'" width="716" height="'+(lay[i].rh+2)+'" fill="transparent" style="cursor:pointer"/>';
+    var svg=q('svg'); svg.setAttribute('viewBox','0 0 720 '+(py+8)); svg.innerHTML=h;
+    svg.querySelectorAll('[data-i]').forEach(function(n){ n.onclick=function(){ cur=+n.getAttribute('data-i'); draw(); }; });
+    var it2=seq[cur], t='';
+    if(it2.t==='f'){
+      var c=it2.c, lo2=(mode==='train'||Lm===0)?1:Math.max(1,c-Lm), vs=c>1?('C'+lo2+(c-1>lo2?' 到 C'+(c-1):'')):'没有（这是第一个 chunk）';
+      t='F'+it2.n+'：只有 C'+c+' 在算，噪声等级 t'+(T-it2.i)+'；同时读取的 KV：'+vs+(c>1?'（常数）':'')+'。';
+      if(mode==='train'){ t+=(it2.i===j)?' 这是选中的那一步：开梯度，取这一步的预测作为 C'+c+' 的输出，后面的去噪步不再跑。':' 无梯度：取预测，重新加噪，推到下一个噪声等级。'; }
+      else t+=(it2.i<T-1)?' 先预测干净结果，再重新加噪推到下一个噪声等级。':' 最后一步：预测的干净结果就是 C'+c+' 的输出。';
+    } else {
+      t='KV 刷新：把 C'+it2.c+' 的输出（噪声等级 0）单独过一遍模型，存成 K、V'+(mode==='train'?'，无梯度':'')+'。此时只有这一个 chunk 在算，'+(it2.c<NC?'C'+(it2.c+1)+' 要等它做完才能开始。':'这是最后一个 chunk。');
+    }
+    q('rd').textContent=t;
+    var nf=0; seq.forEach(function(s){ if(s.t==='f') nf++; });
+    q('ft').textContent='共 '+nf+' 次去噪前向和 '+NC+' 次 KV 刷新，全部从上到下串行。默认缓存足够大，视频在训练长度之内时每个 chunk 都读之前所有 chunk 的 KV；没有 sink。';
+  }
+  root.querySelectorAll('button[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.getAttribute('data-m'); cur=0; build(); ctl(); draw(); }; });
+  q('nx').onclick=function(){ if(cur<seq.length-1){ cur++; draw(); } };
+  q('pv').onclick=function(){ if(cur>0){ cur--; draw(); } };
+  q('r0').onclick=function(){ cur=0; draw(); };
+  build(); ctl(); draw();
+});
+
+/* ---------- 6. Rolling Forcing graph ---------- */
+FIG.register('rf', function(root){
+  var COL = FIG.COL, T=4, NC=8, NR=NC+T-1, x0=48, cw=62, gx=6;
+  var mode = root.getAttribute('data-mode') || 'infer', e=1, cur=0, seq=[];
+  for(var k=1;k<=NR;k++){ seq.push({t:'f',k:k}); if(k>=T) seq.push({t:'kv',c:k-T+1,k:k}); }
+  root.innerHTML =
+    '<div class="bar"><button data-m="infer">推理</button><button data-m="train">训练（只有间隔的窗口开梯度）</button><span style="flex:1"></span><button data-k="pv">上一步</button><button data-k="nx">下一步</button><button data-k="r0">回到开头</button></div>'+
+    '<div class="bar" data-k="ctl" style="min-height:28px"></div>'+
+    '<svg data-k="svg" viewBox="0 0 720 520" width="100%" role="img"><title>Rolling Forcing 的计算图</title><desc>每个窗口前向一行，紫色格是读取的 KV，灰色格是看不到的 KV，薄绿行是 KV 刷新</desc></svg>'+
+    '<div class="rd" data-k="rd"></div><div class="ft" data-k="ft"></div>';
+  var q = FIG.qf(root);
+  function cx(c){ return x0+(c-1)*(cw+gx); }
+  function vis(k){ var s=Math.max(1,k-T+1), en=Math.min(NC,k), qn=en-s+1, v={};
+    if(s-1>=1){ v[1]=1; var nw=Math.min(Math.max(0,s-2),T+1-qn); for(var c=s-nw;c<=s-1;c++){ if(c>=2) v[c]=1; } }
+    return v; }
+  function ctl(){
+    var c=q('ctl');
+    c.innerHTML = (mode==='train') ? '<label>抽到的 e</label><input type="range" data-k="e" min="0" max="3" step="1" value="'+e+'" style="width:120px"/><span data-k="eo" style="font-weight:600"></span><span class="small">每个视频抽一次；窗口序号除以 4 余 e 的开梯度</span>' : '<span class="small">点任意一行，或用“下一步”按执行顺序走。紫色格 = 这一行读的 KV，灰色格 = 看不到的。</span>';
+    var es=q('e'); if(es) es.oninput=function(){ e=+es.value; draw(); };
+  }
+  function draw(){
+    root.querySelectorAll('button[data-m]').forEach(function(b){ b.className=(b.getAttribute('data-m')===mode)?'on':''; });
+    var eo=q('eo'); if(eo) eo.textContent=e;
+    var h='', y=24, lay=[], pred={}, gc=0, i;
+    for(i=0;i<seq.length;i++){ var rh=seq[i].t==='f'?22:14; lay.push({y:y,rh:rh}); y+=rh+4; }
+    var endY=y;
+    for(var c=1;c<=NC;c++) h+='<text x="'+(cx(c)+cw/2)+'" y="14" text-anchor="middle" font-size="12" fill="var(--text-secondary)">C'+c+'</text>';
+    for(i=0;i<seq.length;i++){ if(i===cur) h+='<rect x="0" y="'+(lay[i].y-3)+'" width="716" height="'+(lay[i].rh+6)+'" rx="8" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="0.5"/>'; }
+    for(i=0;i<seq.length;i++){
+      var it=seq[i], L=lay[i];
+      if(it.t==='f'){
+        var kk=it.k, s=Math.max(1,kk-T+1), en=Math.min(NC,kk), g=(mode==='train'&&((kk-1)%T===e)), v=vis(kk);
+        if(g){ gc++; h+='<rect x="2" y="'+(L.y-2)+'" width="592" height="'+(L.rh+4)+'" rx="6" fill="none" stroke="#185FA5" stroke-width="1.5"/><text x="600" y="'+(L.y+L.rh/2+4)+'" font-size="12" font-weight="500" fill="#185FA5">有梯度</text>'; }
+        if(mode==='infer'&&kk>=T) h+='<text x="600" y="'+(L.y+L.rh/2+4)+'" font-size="12" font-weight="500" fill="#0F6E56">输出 C'+(kk-T+1)+'</text>';
+        h+='<text x="40" y="'+(L.y+L.rh/2+4)+'" text-anchor="end" font-size="12" font-weight="'+(g?500:400)+'" fill="'+(g?'#185FA5':'var(--text-secondary)')+'">F'+kk+'</text>';
+        for(var c1=1;c1<=s-1;c1++){
+          if(v[c1]) h+='<rect x="'+cx(c1)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="5" fill="#CECBF6" stroke="#7F77DD" stroke-width="1.2"/><text x="'+(cx(c1)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">'+(c1===1?'读 sink':'读 KV')+'</text>';
+          else h+='<rect x="'+cx(c1)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="5" fill="var(--surface-1)" opacity="0.7" stroke="var(--border)" stroke-width="0.5"/><text x="'+(cx(c1)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" fill="var(--text-muted)">看不到</text>';
+        }
+        for(var c2=s;c2<=en;c2++){
+          var lv=T-(kk-c2), cc=COL[lv];
+          if(mode==='train'&&g){ pred[c2]=lv; h+='<rect x="'+cx(c2)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="5" fill="'+cc[0]+'"/><text x="'+(cx(c2)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="12" font-weight="500" fill="'+cc[1]+'">t'+lv+'</text>'; }
+          else if(mode==='infer'){ h+='<rect x="'+cx(c2)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="5" fill="'+cc[0]+'" opacity="'+(lv===1?1:0.85)+'"/><text x="'+(cx(c2)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="12" font-weight="500" fill="'+cc[1]+'">t'+lv+'</text>'; }
+          else h+='<rect x="'+cx(c2)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="5" fill="var(--surface-1)" stroke="var(--border)" stroke-width="0.5"/><text x="'+(cx(c2)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="12" fill="var(--text-muted)">t'+lv+'</text>';
+        }
+      } else {
+        h+='<rect x="'+cx(it.c)+'" y="'+L.y+'" width="'+cw+'" height="'+L.rh+'" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/><text x="'+(cx(it.c)+cw/2)+'" y="'+(L.y+L.rh/2+4)+'" text-anchor="middle" font-size="11" fill="#085041">写入 KV</text><text x="600" y="'+(L.y+L.rh/2+4)+'" font-size="11" fill="#0F6E56">刷新 KV'+(mode==='train'?'（无梯度）':'')+'</text>';
+      }
+    }
+    var py=endY+8;
+    if(mode==='train'){
+      h+='<text x="40" y="'+(py+15)+'" text-anchor="end" font-size="12" fill="var(--text-secondary)">预测</text>';
+      for(var c3=1;c3<=NC;c3++){ var lv3=pred[c3]; if(lv3){ var cc3=COL[lv3]; h+='<rect x="'+cx(c3)+'" y="'+py+'" width="'+cw+'" height="22" rx="5" fill="'+cc3[0]+'"/><text x="'+(cx(c3)+cw/2)+'" y="'+(py+15)+'" text-anchor="middle" font-size="12" font-weight="500" fill="'+cc3[1]+'">来自 t'+lv3+'</text>'; } }
+      h+='<text x="48" y="'+(py+42)+'" font-size="12" fill="var(--text-secondary)">蓝框行的输出拼成这一条，交给 DMD；梯度只回到蓝框行的那次前向</text>';
+      py+=52;
+    }
+    for(i=0;i<seq.length;i++) h+='<rect data-i="'+i+'" x="0" y="'+(lay[i].y-2)+'" width="716" height="'+(lay[i].rh+4)+'" fill="transparent" style="cursor:pointer"/>';
+    var svg=q('svg'); svg.setAttribute('viewBox','0 0 720 '+(py+8)); svg.innerHTML=h;
+    svg.querySelectorAll('[data-i]').forEach(function(n){ n.onclick=function(){ cur=+n.getAttribute('data-i'); draw(); }; });
+    var it2=seq[cur], t='';
+    if(it2.t==='f'){
+      var k2=it2.k, s2=Math.max(1,k2-T+1), en2=Math.min(NC,k2), v2=vis(k2), g2=(mode==='train'&&((k2-1)%T===e));
+      var vs=Object.keys(v2).map(function(c){ return 'C'+c+(c==1?'（sink）':''); }).join('、');
+      t='F'+k2+'：窗口 C'+s2+(en2>s2?' 到 C'+en2:'')+' 一起降一级'+(mode==='train'?(g2?'，开梯度。':'，不带梯度。'):'。')+' 同时读取的 KV：'+(vs?vs+'；这些 KV 都是常数。':'没有（还没有任何输出）。');
+      if(k2>=T) t+=' 本次 C'+(k2-T+1)+' 降到干净，下一步必须先刷新它的 KV。'; else t+=' 预热窗口，还没有 chunk 输出。';
+    } else {
+      t='KV 刷新：把 C'+it2.c+' 的干净结果单独过一遍模型，存成 K、V'+(mode==='train'?'，无梯度':'')+'。此时只有这一个 chunk 在算，F'+(it2.k+1)+' 要等它做完才能开始。';
+    }
+    q('rd').textContent=t;
+    q('ft').textContent=(mode==='train'?('共 '+NR+' 次窗口前向（开梯度 '+gc+' 次）和 '+NC+' 次 KV 刷新（都无梯度）。'):('共 '+NR+' 次窗口前向和 '+NC+' 次 KV 刷新。'))+'预热窗口也会跑刷新但之后被覆盖，收尾窗口能读更长的历史，都是我读代码的推断。';
+  }
+  root.querySelectorAll('button[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.getAttribute('data-m'); ctl(); draw(); }; });
+  q('nx').onclick=function(){ if(cur<seq.length-1){ cur++; draw(); } };
+  q('pv').onclick=function(){ if(cur>0){ cur--; draw(); } };
+  q('r0').onclick=function(){ cur=0; draw(); };
+  ctl(); draw();
+});
+
+document.addEventListener('DOMContentLoaded', function(){ FIG.mountAll(); });
+
+/* three new stepper figures: ODE distillation (original B+C), Causal Forcing B/C, Causal Forcing C data generation */
+(function(){
+  var COL = {1:['#9FE1CB','#04342C'],2:['#B5D4F4','#0C447C'],3:['#85B7EB','#042C53'],4:['#378ADD','#042C53'],5:['#5DCAA5','#04342C']};
+  var sub = ['₁','₂','₃','₄','₅'];
+  function bx(x,y,w,h,f,s,sw,t,tc,dash,op){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'"'+(dash?' stroke-dasharray="3 2"':'')+' opacity="'+op+'"/>'+
+           '<text x="'+(x+w/2)+'" y="'+(y+h/2+4)+'" text-anchor="middle" font-size="12" font-weight="500" fill="'+tc+'" style="pointer-events:none">'+t+'</text>';
+  }
+  function maskTF(NC,x0,y0,cs,sel,withTitle){
+    var gap=5, pos=function(k){return k<NC?k*cs:k*cs+gap;};
+    var h='';
+    if(withTitle) h+='<text x="'+x0+'" y="'+(y0-16)+'" font-size="11" fill="var(--text-secondary)">注意力：行 Q，列 K/V</text><text x="'+x0+'" y="'+(y0-4)+'" font-size="11" fill="var(--text-muted)">前 '+NC+' 个是干净 G，后 '+NC+' 个是带噪 N</text>';
+    for(var r=0;r<2*NC;r++) for(var c=0;c<2*NC;c++){
+      var a=false,f='var(--surface-1)';
+      if(r<NC){ a=(c<NC&&c<=r); if(a) f='#CECBF6'; }
+      else { var ri=r-NC; if(c<NC){ a=(c<ri); if(a) f='#CECBF6'; } else { a=(c-NC===ri); if(a) f='#B5D4F4'; } }
+      if(a&&r===NC+sel) f=(c<NC)?'#AFA9EC':'#378ADD';
+      h+='<rect x="'+(x0+pos(c))+'" y="'+(y0+pos(r))+'" width="'+(cs-1)+'" height="'+(cs-1)+'" rx="1.5" fill="'+f+'" opacity="'+(a?1:0.6)+'" stroke="'+(a?'none':'var(--border)')+'" stroke-width="0.5"/>';
+    }
+    h+='<rect x="'+(x0-1)+'" y="'+(y0+pos(NC+sel)-1)+'" width="'+(pos(2*NC-1)+cs+1)+'" height="'+cs+'" fill="none" stroke="#185FA5" stroke-width="1.5"/>';
+    return h;
+  }
+  function maskBC(NC,x0,y0,cs,sel){
+    var h='<text x="'+x0+'" y="'+(y0-16)+'" font-size="11" fill="var(--text-secondary)">学生的注意力：行 Q，列 K/V</text><text x="'+x0+'" y="'+(y0-4)+'" font-size="11" fill="var(--text-muted)">深色 = 能读</text>';
+    for(var r=0;r<NC;r++) for(var i=0;i<NC;i++){
+      var a=(i<=r), hl=(r===sel);
+      h+='<rect x="'+(x0+i*cs)+'" y="'+(y0+r*cs)+'" width="'+(cs-2)+'" height="'+(cs-2)+'" rx="2" fill="'+(a?(i===r?(hl?'#378ADD':'#85B7EB'):(hl?'#AFA9EC':'#CECBF6')):'var(--surface-1)')+'" opacity="'+(a?1:0.6)+'" stroke="'+(a?'none':'var(--border)')+'" stroke-width="0.5"/>';
+    }
+    h+='<rect x="'+(x0-1)+'" y="'+(y0+sel*cs-1)+'" width="'+(NC*cs)+'" height="'+cs+'" fill="none" stroke="#185FA5" stroke-width="1.5"/>';
+    return h;
+  }
+
+  /* ---------- A. original B+C: ODE distillation in four steps ---------- */
+  FIG.register('ode', function(root){
+    var NC=5, pick=[1,3,0,2,3], sel=2, step=1;
+    root.innerHTML =
+      '<div class="bar"><button data-k="pv">上一步</button><button data-k="nx">下一步</button><span data-k="stp" style="font-size:14px;font-weight:500"></span><span style="flex:1"></span><button data-k="re">重新抽</button></div>'+
+      '<svg data-k="sv" viewBox="0 0 680 470" width="100%" role="img"><title>ODE 蒸馏分四步</title><desc>教师去噪时间线、挑行拼输入、学生一次前向、预测对准最终结果</desc></svg><div class="rd" data-k="rd"></div>';
+    var q=FIG.qf(root);
+    var rowTxt=['教师第一次前向之前的输入（纯噪声）','教师走了一部分之后的输入','再往后的输入','接近走完的输入'];
+    function draw(){
+      q('stp').textContent='第 '+step+' 步 / 4';
+      q('re').style.visibility=(step>=2)?'visible':'hidden';
+      var x0=120,cw=58,gx=8,h='',i,r;
+      function cx(c){return x0+c*(cw+gx);}
+      var ww=NC*(cw+gx)-gx;
+      var titles=['第 1 步：教师是怎么去噪的','第 2 步：造一个训练样本，每个 chunk 挑一行','第 3 步：学生一次前向处理整个输入','第 4 步：预测对准教师走完的结果'];
+      h+='<text x="16" y="14" font-size="13" font-weight="500" fill="var(--text-primary)">'+titles[step-1]+'</text>';
+      for(i=0;i<NC;i++) h+='<text x="'+(cx(i)+cw/2)+'" y="32" text-anchor="middle" font-size="12" fill="var(--text-secondary)">C'+(i+1)+'</text>';
+      h+='<text x="14" y="125" font-size="11" fill="var(--text-muted)" transform="rotate(-90 14 125)">教师去噪的时间方向</text>';
+      h+='<path d="M26 44 L26 196" stroke="var(--border-strong)" stroke-width="1.2" fill="none"/><path d="M22 190 L26 198 L30 190" fill="none" stroke="var(--border-strong)" stroke-width="1.2"/>';
+      for(r=0;r<4;r++){
+        var y=40+r*34, lv=4-r, cc=COL[lv];
+        h+='<text x="'+(x0-8)+'" y="'+(y+17)+'" text-anchor="end" font-size="12" fill="var(--text-secondary)">t'+lv+(r===0?' 纯噪声':'')+'</text>';
+        for(i=0;i<NC;i++){ var p=(step>=2&&pick[i]===r); h+=bx(cx(i),y,cw,26,cc[0],p?'#185FA5':'none',p?2.5:0,'t'+lv,cc[1],false,(step>=2&&!p)?0.35:1); }
+        if(step===1) h+='<text x="'+(cx(NC-1)+cw+12)+'" y="'+(y+17)+'" font-size="11" fill="var(--text-muted)">'+rowTxt[r]+'</text>';
+      }
+      var fy=40+4*34+6;
+      h+='<text x="'+(x0-8)+'" y="'+(fy+17)+'" text-anchor="end" font-size="12" fill="var(--text-secondary)">X 走完</text>';
+      for(i=0;i<NC;i++) h+=bx(cx(i),fy,cw,26,'#5DCAA5','none',0,'X'+sub[i],'#04342C',false,1);
+      if(step===1) h+='<text x="'+(cx(NC-1)+cw+12)+'" y="'+(fy+17)+'" font-size="11" fill="var(--text-muted)">走完所有步的结果，只当目标</text><text x="'+x0+'" y="'+(fy+46)+'" font-size="12" fill="var(--text-secondary)">每一步：把这一行整段视频送进教师前向，得到 velocity，沿它用 Euler 走一小步，得到下一行。</text><text x="'+x0+'" y="'+(fy+64)+'" font-size="12" fill="var(--text-secondary)">一行里所有 chunk 噪声等级相同。存下的是潜变量本身。</text>';
+      var iy2=fy+50, sy=iy2+46, py=sy+56, ty=py+52;
+      if(step>=2){
+        h+='<text x="16" y="'+(iy2-8)+'" font-size="12" fill="var(--text-secondary)">拼出的输入 N：每个 chunk 取自它挑中的那一行，不加新噪声</text>';
+        for(i=0;i<NC;i++){
+          var lv2=4-pick[i], c2=COL[lv2], self=(step>=3&&i===sel), read=(step>=3&&i<sel), fut=(step>=3&&i>sel);
+          h+=bx(cx(i),iy2,cw,26,c2[0],self?'#185FA5':(read?'#7F77DD':'none'),(self||read)?2.5:0,'N'+sub[i]+' t'+lv2,c2[1],false,fut?0.4:1)+'<rect data-s="'+i+'" x="'+(cx(i)-2)+'" y="'+iy2+'" width="'+(cw+4)+'" height="26" fill="transparent" style="cursor:pointer"/>';
+        }
+        h+='<text x="'+(cx(NC-1)+cw+12)+'" y="'+(fy-60)+'" font-size="12" fill="#185FA5">每一列挑一行（蓝框）</text><text x="'+(cx(NC-1)+cw+12)+'" y="'+(fy-44)+'" font-size="11" fill="var(--text-muted)">各列独立随机</text>';
+      }
+      if(step>=3){
+        h+='<path d="M'+(x0+ww/2)+' '+(iy2+28)+' L'+(x0+ww/2)+' '+(sy-2)+'" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+        h+='<rect x="'+x0+'" y="'+sy+'" width="'+ww+'" height="34" rx="8" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="0.8"/><text x="'+(x0+ww/2)+'" y="'+(sy+21)+'" text-anchor="middle" font-size="13" font-weight="500" fill="var(--text-primary)">学生（块因果）：所有 chunk 一次前向</text>';
+        h+='<path d="M'+(x0+ww/2)+' '+(sy+36)+' L'+(x0+ww/2)+' '+(py-12)+'" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+        h+='<text x="16" y="'+(py-6)+'" font-size="12" fill="var(--text-secondary)">学生的预测 P：每个 chunk 一个干净结果</text>';
+        for(i=0;i<NC;i++){ var s2=(i===sel); h+=bx(cx(i),py,cw,26,'#CECBF6',s2?'#185FA5':'#7F77DD',s2?2.5:0.8,'P'+sub[i],'#26215C',false,1)+'<rect data-s="'+i+'" x="'+(cx(i)-2)+'" y="'+py+'" width="'+(cw+4)+'" height="26" fill="transparent" style="cursor:pointer"/>'; }
+        h+=maskBC(NC,cx(NC-1)+cw+12,iy2+20,17,sel);
+      }
+      if(step>=4){
+        h+='<text x="16" y="'+(ty-6)+'" font-size="12" fill="var(--text-secondary)">目标：就是上面表里走完的 X</text>';
+        for(i=0;i<NC;i++){ var s3=(i===sel); h+='<path d="M'+(cx(i)+cw/2)+' '+(py+28)+' L'+(cx(i)+cw/2)+' '+ty+'" stroke="'+(s3?'#185FA5':'var(--border-strong)')+'" stroke-width="'+(s3?2:1)+'" stroke-dasharray="3 2" fill="none"/>'+bx(cx(i),ty,cw,26,'#5DCAA5',s3?'#185FA5':'none',s3?2.5:0,'X'+sub[i],'#04342C',false,1); }
+        h+='<text x="'+(cx(NC-1)+cw+12)+'" y="'+(py+46)+'" font-size="12" fill="var(--text-secondary)">每个 chunk 的 P 和 X</text><text x="'+(cx(NC-1)+cw+12)+'" y="'+(py+62)+'" font-size="12" fill="var(--text-secondary)">逐个做均方误差</text>';
+      }
+      var endY=(step>=4)?ty+40:(step>=3?py+40:(step>=2?iy2+40:fy+76));
+      var svg=q('sv'); svg.setAttribute('viewBox','0 0 680 '+endY); svg.innerHTML=h;
+      svg.querySelectorAll('[data-s]').forEach(function(n){ n.onclick=function(){ sel=+n.getAttribute('data-s'); draw(); }; });
+      var k=sel+1, rd='';
+      if(step===1) rd='教师是多步扩散模型。图里每一行是整段视频在教师去噪过程中某一时刻的潜变量：t4 是第一次前向之前的输入，也就是纯噪声；往下是越来越干净的输入；最下面的 X 是走完所有步的结果。存的是潜变量本身，不是 velocity。';
+      if(step===2) rd='现在造一个训练样本：每个 chunk 各自挑一行（蓝框），把这一列这一行的小块取出来拼成学生的输入 N。拼的时候不加任何新噪声，小块本来就带着那一行的噪声，所以 N 里各 chunk 的噪声等级可以不同。点“重新抽”换一组。';
+      if(step===3){ rd='学生一次前向处理整个 N。右边是学生的注意力：每个 chunk 读自己和它前面的 chunk，读不到后面的。选中 C'+k+'：'; if(sel>0){ var ps=[]; for(i=0;i<=sel;i++) ps.push('N'+sub[i]+'（t'+(4-pick[i])+'）'); rd+='它读 '+ps.join('、')+'，全都是带噪的潜变量。'; } else rd+='它是第一个，只读自己。'; rd+=' 学生对每个 chunk 输出一个干净结果 P，也就是一步跳到终点。点任意一个 chunk 可以换。'; }
+      if(step===4) rd='每个 chunk 的预测 P'+sub[sel]+' 对准教师走完的 X'+sub[sel]+'，逐个算均方误差再取平均。这就是蒸馏：教师用很多步才走完的路，学生一步跳完。';
+      q('rd').textContent=rd;
+    }
+    q('nx').onclick=function(){ if(step<4){ step++; draw(); } };
+    q('pv').onclick=function(){ if(step>1){ step--; draw(); } };
+    q('re').onclick=function(){ pick=pick.map(function(){return Math.floor(Math.random()*4);}); draw(); };
+    draw();
+  });
+
+  /* ---------- B. Causal Forcing B/C in three steps ---------- */
+  FIG.register('cfbc', function(root){
+    var NC=5, step=1, sel=2, lv1=[3,1,4,2,4], lv3=3;
+    root.innerHTML =
+      '<div class="bar"><button data-k="pv">上一步</button><button data-k="nx">下一步</button><span data-k="stp" style="font-size:14px;font-weight:500"></span><span style="flex:1"></span><span data-k="ctl"></span></div>'+
+      '<svg data-k="sv" viewBox="0 0 680 440" width="100%" role="img"><title>Causal Forcing 的 B/C 三步</title><desc>干净前缀加带噪当前，自回归教师，因果 ODE 回归</desc></svg><div class="rd" data-k="rd"></div>';
+    var q=FIG.qf(root);
+    function ctl(){
+      var c=q('ctl'), h='';
+      if(step===1) h='<button data-k="rr">重新抽噪声等级</button>';
+      if(step===3) h='<label>挑哪一行</label> <input type="range" data-k="l3" min="1" max="4" step="1" value="'+lv3+'" style="width:110px"/> <span data-k="l3o" style="font-weight:600"></span>';
+      c.innerHTML=h;
+      var rr=q('rr'); if(rr) rr.onclick=function(){ lv1=lv1.map(function(){return 1+Math.floor(Math.random()*4);}); draw(); };
+      var l=q('l3'); if(l) l.oninput=function(){ lv3=+l.value; draw(); };
+    }
+    function draw(){
+      q('stp').textContent='第 '+step+' 步 / 3';
+      var l3o=q('l3o'); if(l3o) l3o.textContent='t'+lv3;
+      var x0=130,cw=58,gx=8,i,r,h='';
+      function cx(c){return x0+c*(cw+gx);}
+      var ww=NC*(cw+gx)-gx;
+      var titles=['第 1 步（B）：用 TF 训一个自回归模型','第 2 步（C 的前半）：用这个模型造轨迹','第 3 步（C 的后半）：学生一步回归到教师的终点'];
+      h+='<text x="16" y="14" font-size="13" font-weight="500" fill="var(--text-primary)">'+titles[step-1]+'</text>';
+      for(i=0;i<NC;i++) h+='<text x="'+(cx(i)+cw/2)+'" y="32" text-anchor="middle" font-size="12" fill="var(--text-secondary)">C'+(i+1)+'</text>';
+      h+='<text x="'+(x0-8)+'" y="57" text-anchor="end" font-size="12" fill="var(--text-secondary)">G 干净</text>';
+      for(i=0;i<NC;i++){ var rdd=(i<sel), self=(i===sel); h+=bx(cx(i),40,cw,26,'#CECBF6',rdd?'#534AB7':'#7F77DD',rdd?2.5:0.8,'G'+sub[i],'#26215C',self,self?0.5:(i>sel?0.55:1)); }
+      var endY=300;
+      if(step===1){
+        h+='<text x="'+(x0-8)+'" y="113" text-anchor="end" font-size="12" fill="var(--text-secondary)">N 带噪</text>';
+        for(i=0;i<NC;i++){ var c1=COL[lv1[i]]; h+=bx(cx(i),96,cw,26,c1[0],i===sel?'#185FA5':'none',i===sel?2.5:0,'N'+sub[i]+' t'+lv1[i],c1[1],false,1)+'<rect data-s="'+i+'" x="'+(cx(i)-2)+'" y="96" width="'+(cw+4)+'" height="26" fill="transparent" style="cursor:pointer"/>'; }
+        h+='<text x="16" y="146" font-size="11" fill="var(--text-muted)">N 是把数据里的干净视频 G 的每个 chunk 各自加噪得到的，每个 chunk 一个等级</text>';
+        h+='<path d="M'+(x0+ww/2)+' 124 L'+(x0+ww/2)+' 160" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+        h+='<rect x="'+x0+'" y="160" width="'+ww+'" height="34" rx="8" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="0.8"/><text x="'+(x0+ww/2)+'" y="181" text-anchor="middle" font-size="13" font-weight="500" fill="var(--text-primary)">自回归模型：G 和 N 一起，一次前向</text>';
+        h+='<path d="M'+(x0+ww/2)+' 196 L'+(x0+ww/2)+' 218" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+        h+='<text x="'+(x0-8)+'" y="235" text-anchor="end" font-size="12" fill="var(--text-secondary)">预测 P</text>';
+        for(i=0;i<NC;i++){ h+=bx(cx(i),218,cw,26,'#B5D4F4',i===sel?'#185FA5':'none',i===sel?2.5:0,'P'+sub[i],'#0C447C',false,1)+'<rect data-s="'+i+'" x="'+(cx(i)-2)+'" y="218" width="'+(cw+4)+'" height="26" fill="transparent" style="cursor:pointer"/>'; }
+        h+='<text x="16" y="266" font-size="12" fill="var(--text-secondary)">每个 chunk 的预测朝着对应的干净 G 去（流匹配损失），没有教师模型</text>';
+        h+=maskTF(NC,cx(NC-1)+cw+34,70,12,sel,true);
+        endY=290;
+      }
+      if(step===2){
+        for(r=0;r<4;r++){
+          var y=94+r*34, lv=4-r, cc=COL[lv];
+          h+='<text x="'+(x0-8)+'" y="'+(y+17)+'" text-anchor="end" font-size="12" fill="var(--text-secondary)">t'+lv+(r===0?' 纯噪声':'')+'</text>';
+          for(i=0;i<NC;i++) h+=bx(cx(i),y,cw,26,cc[0],'none',0,'t'+lv,cc[1],false,1);
+        }
+        var fy=94+4*34+6;
+        h+='<text x="'+(x0-8)+'" y="'+(fy+17)+'" text-anchor="end" font-size="12" fill="var(--text-secondary)">X 走完</text>';
+        for(i=0;i<NC;i++) h+=bx(cx(i),fy,cw,26,'#5DCAA5','none',0,'X'+sub[i],'#04342C',false,1);
+        h+='<path d="M26 98 L26 '+(fy+22)+'" stroke="var(--border-strong)" stroke-width="1.2" fill="none"/><path d="M22 '+(fy+14)+' L26 '+(fy+24)+' L30 '+(fy+14)+'" fill="none" stroke="var(--border-strong)" stroke-width="1.2"/>';
+        h+='<text x="'+(cx(NC-1)+cw+14)+'" y="108" font-size="12" fill="var(--text-secondary)">教师 = 第 1 步训出的自回归模型</text><text x="'+(cx(NC-1)+cw+14)+'" y="126" font-size="11" fill="var(--text-muted)">只做推理，不训练</text><text x="'+(cx(NC-1)+cw+14)+'" y="142" font-size="11" fill="var(--text-muted)">每个 chunk 只读 G 前缀和自己</text><text x="'+(cx(NC-1)+cw+14)+'" y="158" font-size="11" fill="var(--text-muted)">所以所有 chunk 可以一起去噪</text>';
+        endY=fy+44;
+      }
+      if(step===3){
+        var c3=COL[lv3];
+        h+='<text x="'+(x0-8)+'" y="113" text-anchor="end" font-size="12" fill="var(--text-secondary)">N 带噪</text>';
+        for(i=0;i<NC;i++){ h+=bx(cx(i),96,cw,26,c3[0],i===sel?'#185FA5':'none',i===sel?2.5:0,'N'+sub[i]+' t'+lv3,c3[1],false,1)+'<rect data-s="'+i+'" x="'+(cx(i)-2)+'" y="96" width="'+(cw+4)+'" height="26" fill="transparent" style="cursor:pointer"/>'; }
+        h+='<text x="16" y="146" font-size="11" fill="var(--text-muted)">N 取自第 2 步教师轨迹的同一行，所有 chunk 同一个噪声等级</text>';
+        h+='<path d="M'+(x0+ww/2)+' 124 L'+(x0+ww/2)+' 160" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+        h+='<rect x="'+x0+'" y="160" width="'+ww+'" height="34" rx="8" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="0.8"/><text x="'+(x0+ww/2)+'" y="181" text-anchor="middle" font-size="13" font-weight="500" fill="var(--text-primary)">学生：G 和 N 一起，一次前向</text>';
+        h+='<path d="M'+(x0+ww/2)+' 196 L'+(x0+ww/2)+' 218" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+        h+='<text x="'+(x0-8)+'" y="235" text-anchor="end" font-size="12" fill="var(--text-secondary)">预测 P</text>';
+        for(i=0;i<NC;i++){ h+=bx(cx(i),218,cw,26,'#CECBF6',i===sel?'#185FA5':'#7F77DD',i===sel?2.5:0.8,'P'+sub[i],'#26215C',false,1)+'<rect data-s="'+i+'" x="'+(cx(i)-2)+'" y="218" width="'+(cw+4)+'" height="26" fill="transparent" style="cursor:pointer"/>'; }
+        h+='<text x="'+(x0-8)+'" y="283" text-anchor="end" font-size="12" fill="var(--text-secondary)">目标 X</text>';
+        for(i=0;i<NC;i++){ var s3=(i===sel); h+='<path d="M'+(cx(i)+cw/2)+' 246 L'+(cx(i)+cw/2)+' 264" stroke="'+(s3?'#185FA5':'var(--border-strong)')+'" stroke-width="'+(s3?2:1)+'" stroke-dasharray="3 2" fill="none"/>'+bx(cx(i),266,cw,26,'#5DCAA5',s3?'#185FA5':'none',s3?2.5:0,'X'+sub[i],'#04342C',false,1); }
+        h+='<text x="16" y="314" font-size="12" fill="var(--text-secondary)">每个 chunk 的 P 和教师走完的 X 逐个做均方误差</text>';
+        h+=maskTF(NC,cx(NC-1)+cw+34,70,12,sel,true);
+        endY=334;
+      }
+      var svg=q('sv'); svg.setAttribute('viewBox','0 0 680 '+endY); svg.innerHTML=h;
+      svg.querySelectorAll('[data-s]').forEach(function(n){ n.onclick=function(){ sel=+n.getAttribute('data-s'); draw(); }; });
+      var k=sel+1, rd='';
+      var prefix = sel>0 ? ('G'+sub[0]+(sel>1?' 到 G'+sub[sel-1]:'')) : '没有（它是第一个）';
+      if(step===1) rd='把数据里的干净视频 G 的每个 chunk 各自加噪，得到 N，G 和 N 一起放进模型，一次前向。注意力是右边这样：选中 C'+k+'，它的带噪 N'+sub[sel]+' 读干净的 '+prefix+' 和自己，读不到 G'+sub[sel]+'（读了就泄露答案）。这就是干净历史加带噪当前，也就是 TF。训练目标是让预测朝向 G，是普通的扩散训练，不需要教师。';
+      if(step===2) rd='用第 1 步的模型当教师，条件是干净前缀 G，从纯噪声一路去噪，每一步前向后沿 velocity 走一小步。前缀来自数据，所以每个 chunk 的去噪不依赖别的 chunk 生成了什么，所有 chunk 可以一起算。沿途存几个时刻的快照，再存走完的 X。这条轨迹里，X'+sub[sel]+' 只由它的 N 和 G 前缀决定。';
+      if(step===3) rd='学生从第 1 步的权重出发。输入是 G 加上某一行快照 N（所有 chunk 同一个等级），一次前向，选中 C'+k+'：它读干净的 '+prefix+' 和自己的 N'+sub[sel]+'。预测 P'+sub[sel]+' 要对上教师走完的 X'+sub[sel]+'。拖滑块换一行。学生因此学会：给定干净前缀和某个等级的带噪 chunk，一步跳到终点。';
+      q('rd').textContent=rd;
+    }
+    q('nx').onclick=function(){ if(step<3){ step++; ctl(); draw(); } };
+    q('pv').onclick=function(){ if(step>1){ step--; ctl(); draw(); } };
+    ctl(); draw();
+  });
+
+  /* ---------- C. Causal Forcing C: data generation ---------- */
+  FIG.register('cfdata', function(root){
+    var NC=5, K=48, sel=2, k=0;
+    root.innerHTML =
+      '<div class="bar"><button data-k="pv">上一步</button><button data-k="nx">下一步</button><button data-k="jp">跳到下一个存点</button><label>教师去噪进度</label><input type="range" data-k="k" min="0" max="48" step="1" value="0" style="width:200px"/><span data-k="ko" style="font-size:14px;font-weight:500"></span></div>'+
+      '<svg data-k="sv" viewBox="0 0 680 400" width="100%" role="img"><title>Causal Forcing 的 C 阶段造数据</title><desc>干净前缀不变，所有 chunk 从纯噪声一起去噪，沿途存快照，最后存 X</desc></svg><div class="rd" data-k="rd"></div>';
+    var q=FIG.qf(root);
+    var items=[{n:'快照 t4（第 0 步，纯噪声）',s:0,lv:4},{n:'快照 t3（第 12 步）',s:12,lv:3},{n:'快照 t2（第 24 步）',s:24,lv:2},{n:'快照 t1（第 36 步）',s:36,lv:1},{n:'X（走完）',s:48,lv:5}];
+    function lvOf(k){ return k>=K?5:4-Math.floor(k/12); }
+    function draw(){
+      q('k').value=k; q('ko').textContent='第 '+k+' 步 / '+K;
+      var x0=176,cw=50,gx=8,i,r,h='';
+      function cx(c){return x0+c*(cw+gx);}
+      var ww=NC*(cw+gx)-gx;
+      for(i=0;i<NC;i++) h+='<text x="'+(cx(i)+cw/2)+'" y="30" text-anchor="middle" font-size="12" fill="var(--text-secondary)">C'+(i+1)+'</text>';
+      h+='<text x="'+(x0-8)+'" y="55" text-anchor="end" font-size="12" fill="var(--text-secondary)">G 干净前缀</text>';
+      for(i=0;i<NC;i++){ var rd=(i<sel), self=(i===sel); h+=bx(cx(i),38,cw,26,'#CECBF6',rd?'#534AB7':'#7F77DD',rd?2.5:0.8,'G'+sub[i],'#26215C',self,self?0.5:(i>sel?0.55:1)); }
+      h+='<text x="16" y="86" font-size="11" fill="var(--text-muted)">G 是数据里的干净视频，整个过程里不变，不加噪</text>';
+      var lv=lvOf(k), cc=COL[lv];
+      h+='<text x="'+(x0-8)+'" y="113" text-anchor="end" font-size="12" fill="var(--text-secondary)">当前状态 N</text>';
+      for(i=0;i<NC;i++){ h+=bx(cx(i),96,cw,26,cc[0],i===sel?'#185FA5':'none',i===sel?2.5:0,'N'+sub[i],cc[1],false,1)+'<rect data-s="'+i+'" x="'+(cx(i)-2)+'" y="96" width="'+(cw+4)+'" height="26" fill="transparent" style="cursor:pointer"/>'; }
+      h+='<path d="M'+(x0+ww/2)+' 124 L'+(x0+ww/2)+' 138" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+      h+='<rect x="'+x0+'" y="138" width="'+ww+'" height="46" rx="8" fill="var(--surface-1)" stroke="var(--border-strong)" stroke-width="0.8"/><text x="'+(x0+ww/2)+'" y="157" text-anchor="middle" font-size="12.5" font-weight="500" fill="var(--text-primary)">教师前向：所有 chunk 一次算</text><text x="'+(x0+ww/2)+'" y="174" text-anchor="middle" font-size="11" fill="var(--text-secondary)">得到 velocity，沿它走一小步，更新 N</text>';
+      h+='<path d="M'+(x0+ww)+' 161 L'+(x0+ww+12)+' 161 L'+(x0+ww+12)+' 109 L'+(x0+ww+3)+' 109" stroke="var(--border-strong)" stroke-width="1" fill="none"/><path d="M'+(x0+ww+7)+' 105 L'+(x0+ww+2)+' 109 L'+(x0+ww+7)+' 113" stroke="var(--border-strong)" stroke-width="1" fill="none"/>';
+      h+='<text x="16" y="204" font-size="11" fill="var(--text-muted)">每一行的所有 chunk 噪声等级相同；</text><text x="16" y="220" font-size="11" fill="var(--text-muted)">每个 chunk 读的是前面的干净 G 和自己，互不依赖</text>';
+      h+=maskTF(NC,cx(NC-1)+cw+26,52,12,sel,true);
+      var sy=246;
+      h+='<text x="16" y="'+(sy-8)+'" font-size="12" font-weight="500" fill="var(--text-primary)">存盘的数据（每个视频一份，离线保存）</text>';
+      items.forEach(function(it,ri){
+        var y=sy+ri*32, saved=(k>=it.s), c2=COL[it.lv];
+        h+='<text x="'+(x0-8)+'" y="'+(y+17)+'" text-anchor="end" font-size="11" fill="'+(saved?'var(--text-secondary)':'var(--text-muted)')+'">'+it.n+'</text>';
+        for(i=0;i<NC;i++) h+=bx(cx(i),y,cw,24,c2[0],'none',0,it.lv===5?'X'+sub[i]:'t'+it.lv,c2[1],false,saved?1:0.2);
+        h+='<text x="'+(cx(NC-1)+cw+14)+'" y="'+(y+17)+'" font-size="11.5" font-weight="500" fill="'+(saved?'#0E8A66':'var(--text-muted)')+'">'+(saved?'已存':'还没到')+'</text>';
+      });
+      var svg=q('sv'); svg.setAttribute('viewBox','0 0 680 '+(sy+5*32+10)); svg.innerHTML=h;
+      svg.querySelectorAll('[data-s]').forEach(function(n){ n.onclick=function(){ sel=+n.getAttribute('data-s'); draw(); }; });
+      var t='';
+      if(k===0) t='起点：所有 chunk 都是纯噪声，这就是快照 t4，在第一次前向之前就存下来了。接下来每一步，教师把当前整段 N 和干净前缀 G 一起读，做一次前向（实际上跑两次：带 prompt 和不带 prompt，按比例合成一个 velocity，这叫 CFG），沿 velocity 走一小步。';
+      else if(k<K) t='第 '+k+' 步：N 又被教师更新了 '+k+' 次，噪声越来越少。选中 C'+(sel+1)+'：它读 '+(sel>0?'G'+sub[0]+(sel>1?' 到 G'+sub[sel-1]:''):'没有前缀（第一个）')+' 和自己的 N'+sub[sel]+'，所以它怎么去噪，和别的 chunk 在做什么没有关系。'+((k===12||k===24||k===36)?' 此刻存下一张快照。':'');
+      else t='走完了：N 变成教师生成的干净结果 X，存下来。注意 X 不是原视频 G，是教师在这个前缀下生成的样本。存盘的数据就是：4 张快照当“题目”，X 当“答案”。';
+      q('rd').textContent=t;
+    }
+    q('k').oninput=function(){ k=+this.value; draw(); };
+    q('nx').onclick=function(){ if(k<K){ k++; draw(); } };
+    q('pv').onclick=function(){ if(k>0){ k--; draw(); } };
+    q('jp').onclick=function(){ var pts=[12,24,36,48]; for(var j=0;j<pts.length;j++){ if(pts[j]>k){ k=pts[j]; break; } } draw(); };
+    draw();
+  });
+})();
+
+</script>
+</body>
+</html>
